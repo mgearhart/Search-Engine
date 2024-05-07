@@ -7,11 +7,22 @@ import nltk
 from nltk.stem import PorterStemmer
 
 
+index = defaultdict(list)
+
+
 class Posting():
-    def __init__(self, docid: int, tfidf: int, fields):
+    def __init__(self, docid: int, tfidf: int=0, fields=None):
         self.docid = docid
-        self.tfidf = tfidf
+        self.tfidf = tfidf # for now it is term frequency
         self.fields = fields
+
+
+    def __repr__(self):
+        return f'Docid: {self.docid} - tfidf: {self.tfidf} - fields: {self.fields}'
+
+
+    def setTFIDF(self, tfidf: int):
+        self.tfidf = tfidf
 
 
 def tokenize(content: str) -> list:
@@ -56,8 +67,18 @@ def termFrequency(words: list) -> dict:
     return termFreq
 
 
+def loadTokens(term_freq: dict[str, int], document: Posting):
+    '''
+    Loads the tokens pulled from a page into our index
+    '''
+    for term, frequency in term_freq.items():
+        document.setTFIDF(frequency)
+        index[term].append(document)
+
+
 def main():
-    
+    id_count = 0
+
     dev_path = os.path.abspath("DEV")
     
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
@@ -78,7 +99,14 @@ def main():
                 # using var words here to get term freq, maybe we want to use both words and important
                 # words, and count important words twice to increase their pull in the index?
                 termFreq = termFrequency(stemmed_words) #This is a dict of {word->Freq} for this doc
-                print("DEBUG: ", termFreq)
+                posting = Posting(id_count)
+                loadTokens(termFreq, posting)
+
+                id_count += 1
+                # print("DEBUG: ", index)
+
+                if id_count == 2: # test a page at a time
+                    return
                 
                 # Now that we have (url, stemmed words, term freq) for each doc we loop through we need to index them
                 # I'm thinking hashmap with keys being words, and values being lists of {document they appear in, termfreq, url}?
