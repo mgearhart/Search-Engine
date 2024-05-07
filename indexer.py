@@ -5,7 +5,15 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 import nltk
 from nltk.stem import PorterStemmer
-                
+
+
+class Posting():
+    def __init__(self, docid: int, tfidf: int, fields):
+        self.docid = docid
+        self.tfidf = tfidf
+        self.fields = fields
+
+
 def tokenize(content: str) -> list:
     '''
     Takes html string, parses it and tokenizes it
@@ -25,6 +33,7 @@ def tokenize(content: str) -> list:
 
     return words,important_words
 
+
 def stemWords(words: list) -> list:
     '''
     Takes in list of words and stems them.
@@ -36,6 +45,7 @@ def stemWords(words: list) -> list:
     stemmed_words = [stemmer.stem(word) for word in words]
     return stemmed_words
 
+
 def termFrequency(words: list) -> dict:
     '''
     Returns dict of (word -> freq) from list of words 
@@ -44,7 +54,8 @@ def termFrequency(words: list) -> dict:
     for word in words:
         termFreq[word] = termFreq.get(word, 0) + 1
     return termFreq
-        
+
+
 def main():
     
     dev_path = os.path.abspath("DEV")
@@ -71,10 +82,11 @@ def main():
                 
                 # Now that we have (url, stemmed words, term freq) for each doc we loop through we need to index them
                 # I'm thinking hashmap with keys being words, and values being lists of {document they appear in, termfreq, url}?
+                # - need to be sorted
                 # Don't know what file type would be most efficient to store it in though
                 # We also have to offload it to disk at least 3 times for memory reasons, then merge at the end
                 # Then calculate tf-idf too
-                # Idk, figure it out yourself nerd
+                # Idk, figure it out yourself nerd 
 
 if __name__ == "__main__":
     main()
