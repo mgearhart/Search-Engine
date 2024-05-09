@@ -18,7 +18,8 @@ class Posting():
 
 
     def __repr__(self):
-        return f'Docid: {self.docid} - tfidf: {self.tfidf} - fields: {self.fields}'
+        return f'{self.docid}'
+        # return f'Docid: {self.docid} - tfidf: {self.tfidf} - fields: {self.fields}'
 
 
     def setTFIDF(self, tfidf: int):
@@ -88,7 +89,7 @@ def main():
             with open(file_path, "r") as f: #open file then grab data from json file
                 data = json.load(f)
                 
-                url = data.get("url", "") #Our data from the json
+                url = data.get("url", "") # Our data from the json
                 content = data.get("content", "")
                 encoding = data.get("encoding", "")
                 
@@ -104,8 +105,7 @@ def main():
 
                 id_count += 1
                 # print("DEBUG: ", index)
-
-                if id_count == 2: # test a page at a time
+                if id_count == 20: # you can change this number for testing
                     return
                 
                 # Now that we have (url, stemmed words, term freq) for each doc we loop through we need to index them
@@ -116,5 +116,10 @@ def main():
                 # Then calculate tf-idf too
                 # Idk, figure it out yourself nerd 
 
+
 if __name__ == "__main__":
     main()
+    for words in index: # debug index
+        print(words, '-', index[words])
+        
+
