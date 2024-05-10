@@ -5,10 +5,13 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 import nltk
 from nltk.stem import PorterStemmer
+import shelve
 from math import log10
 
 
 index = defaultdict(list)
+DISK_DUMPS = 13 # number of times we want to offload our data into disk
+TOTAL_PAGES = 55393 # exact number
 
 
 class Posting():
@@ -26,6 +29,10 @@ class Posting():
 
     def setTFIDF(self, tfidf: int):
         self.tfidf = tfidf
+
+    # assists with unpickling later
+    # def __reduce__(self):
+    #     return (Posting, (self.docid, self.tfidf, self.fields))
 
 
 def tokenize(content: str) -> list:
@@ -78,6 +85,21 @@ def loadTokens(term_freq: dict[str, int], document: Posting):
         document.setTFIDF(frequency)
         index[term].append(document)
 
+
+def offload():
+    '''
+    Offloads index into separate db file.
+    '''
+    with shelve.open('index.db') as db:
+        for term in index: # loop through each term in index
+            try:
+                if term in db:
+                    db[term] = db[term] + index[term] # append each term's postings to the key stored in disk if it already exists
+            except:
+                db[term] = index[term] # if the term doesn't exist, create a new key for it
+    
+        index.clear() # clear the index for more terms
+
         #settng up tf-idf
         #  tot = sum(x for x in term_freq.values())
         #  document.actualTFIDF = 1 + log10(frequency / tot)
@@ -99,6 +121,8 @@ def main():
     id_count = 0
 
     dev_path = os.path.abspath("DEV")
+
+    dumps_count = 1
     
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
         for file in files:
@@ -125,10 +149,17 @@ def main():
                 posting = Posting(id_count)
                 loadTokens(termFreq, posting)
 
+                # offload index to disk at least 3 times for memory reasons
+                if id_count == (dumps_count * TOTAL_PAGES // DISK_DUMPS) - 1:
+                    offload()
+                    dumps_count += 1
+
+                print(id_count)
+
                 id_count += 1
                 # print("DEBUG: ", index)
-                if False and id_count == 20: # you can change this number for testing
-                    return
+                # if id_count == 20: # you can change this number for testing
+                #     return
                 
                 # Now that we have (url, stemmed words, term freq) for each doc we loop through we need to index them
                 # I'm thinking hashmap with keys being words, and values being lists of {document they appear in, termfreq, url}?
@@ -136,12 +167,13 @@ def main():
                 # Don't know what file type would be most efficient to store it in though
                 # We also have to offload it to disk at least 3 times for memory reasons, then merge at the end
                 # Then calculate tf-idf too
+                # deliverables too
                 # Idk, figure it out yourself nerd 
 
 
 if __name__ == "__main__":
     main()
-    # with open("out2.txt", 'a', encoding='utf-8') as f:
-    #     for words in index: # debug index
-    #         #print(words, '-', index[words])
-    #         f.write(f"{words} {index[words]}\n")
+    # for words in index: # debug index
+    #     print(words, '-', index[words])
+        
+
