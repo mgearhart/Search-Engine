@@ -5,6 +5,7 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 import nltk
 from nltk.stem import PorterStemmer
+from math import log10
 
 
 index = defaultdict(list)
@@ -18,7 +19,8 @@ class Posting():
 
 
     def __repr__(self):
-        return f'{self.docid}'
+        return f"({self.docid} x{self.tfidf})"
+        #return f'{self.docid}'
         # return f'Docid: {self.docid} - tfidf: {self.tfidf} - fields: {self.fields}'
 
 
@@ -76,6 +78,22 @@ def loadTokens(term_freq: dict[str, int], document: Posting):
         document.setTFIDF(frequency)
         index[term].append(document)
 
+        #settng up tf-idf
+        #  tot = sum(x for x in term_freq.values())
+        #  document.actualTFIDF = 1 + log10(frequency / tot)
+        #  document.actualTFIDF = frequency / tot
+
+
+# #can also modify to operate on shelve
+# def TFtoTFIDF(index: defaultdict, tot_pages: int):
+#     '''
+#     Call once after index is built. Multiplies TF by IDF to obtain TF-IDF.
+#     '''
+#     for term, postings in index.values():
+#         idf = log10(tot_pages / len(postings))
+#         for posting in postings:
+#             posting.actualTFIDF *= idf
+
 
 def main():
     id_count = 0
@@ -85,6 +103,10 @@ def main():
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
         for file in files:
             file_path = os.path.join(root, file) #Get absolute path to file so we can open it
+
+            # with open("out.txt", 'a') as f:
+            #     f.write(f"{id_count:<6} {file_path}\n")
+            print(f"{id_count:<6} {file_path}")
                 
             with open(file_path, "r") as f: #open file then grab data from json file
                 data = json.load(f)
@@ -105,7 +127,7 @@ def main():
 
                 id_count += 1
                 # print("DEBUG: ", index)
-                if id_count == 20: # you can change this number for testing
+                if False and id_count == 20: # you can change this number for testing
                     return
                 
                 # Now that we have (url, stemmed words, term freq) for each doc we loop through we need to index them
@@ -119,7 +141,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-    for words in index: # debug index
-        print(words, '-', index[words])
-        
-
+    # with open("out2.txt", 'a', encoding='utf-8') as f:
+    #     for words in index: # debug index
+    #         #print(words, '-', index[words])
+    #         f.write(f"{words} {index[words]}\n")
