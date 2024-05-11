@@ -5,7 +5,9 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 import nltk
 from nltk.stem import PorterStemmer
-import shelve
+#import shelve
+#import sqlite3
+import csv
 from math import log10
 
 
@@ -15,15 +17,15 @@ TOTAL_PAGES = 55393 # exact number
 
 
 class Posting():
-    def __init__(self, docid: int, tfidf: int=0, fields=None):
+    def __init__(self, docid: int, url:str, tfidf: int=0, fields=None):
         self.docid = docid
         self.tfidf = tfidf # for now it is term frequency
         self.fields = fields
+        self.url = url
 
 
     def __repr__(self):
-        return f"({self.docid} x{self.tfidf})"
-        #return f'{self.docid}'
+        return f'({self.docid}, {self.tfidf})'
         # return f'Docid: {self.docid} - tfidf: {self.tfidf} - fields: {self.fields}'
 
 
@@ -86,20 +88,76 @@ def loadTokens(term_freq: dict[str, int], document: Posting):
         index[term].append(document)
 
 
+# csv db implementation
 def offload():
     '''
     Offloads index into separate db file.
     '''
-    with shelve.open('index.db') as db:
-        for term in index: # loop through each term in index
-            try:
-                if term in db:
-                    db[term] = db[term] + index[term] # append each term's postings to the key stored in disk if it already exists
-            except:
-                db[term] = index[term] # if the term doesn't exist, create a new key for it
-    
-        index.clear() # clear the index for more terms
+    with open('index.csv', 'a', newline='\n') as csvfile:
+        indexwriter = csv.writer(csvfile, delimiter=' ',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        
+        for term in index:
+            indexwriter.writerow([term, index[term]]) #merge later
+        
+        index.clear()
 
+
+# shelve db implementation
+# def offload(dumps_count:int):
+#     '''
+#     Offloads index into separate db file.
+#     '''
+#     with shelve.open(f'index{dumps_count}') as db:
+#         for term in index: # loop through each term in index
+#             #try:
+#             if term in db:
+#                 db[term] = db[term] + index[term] # append each term's postings to the key stored in disk if it already exists
+#             #except:
+#             else:
+#                 db[term] = index[term] # if the term doesn't exist, create a new key for it
+    
+#         index.clear() # clear the index for more terms
+
+
+# sql db implementation
+# def offload():
+#     '''
+#     Offloads index into separate db file.
+#     '''
+#     # create table for index
+#     conn = sqlite3.connect('index_sql.db')
+#     cursor = conn.cursor()
+
+#     create_query = f'''CREATE TABLE IF NOT EXISTS _index (
+#                     term TEXT, 
+#                     docid INT, 
+#                     url TEXT, 
+#                     tfidf FLOAT, 
+#                     PRIMARY KEY (term, docid)
+#                     );'''
+
+#     cursor.execute(create_query)
+
+#     # for each index, insert into sql table
+#     for term in index:
+#         for posting in index[term]:
+#             insert_query = f'''INSERT INTO _index (term, docid, url, tfidf) VALUES (?, ?, ?, ?);'''
+        
+#             cursor.execute(insert_query, (term, posting.docid, posting.url, posting.tfidf))
+
+#     # clear the index for more terms
+#     index.clear()
+
+#     conn.commit()
+#     conn.close()
+
+
+def getPostings():
+    '''
+    Get all Postings for each term.
+    '''
+    pass
         #settng up tf-idf
         #  tot = sum(x for x in term_freq.values())
         #  document.actualTFIDF = 1 + log10(frequency / tot)
@@ -146,7 +204,7 @@ def main():
                 # using var words here to get term freq, maybe we want to use both words and important
                 # words, and count important words twice to increase their pull in the index?
                 termFreq = termFrequency(stemmed_words) #This is a dict of {word->Freq} for this doc
-                posting = Posting(id_count)
+                posting = Posting(id_count, url)
                 loadTokens(termFreq, posting)
 
                 # offload index to disk at least 3 times for memory reasons
@@ -175,5 +233,3 @@ if __name__ == "__main__":
     main()
     # for words in index: # debug index
     #     print(words, '-', index[words])
-        
-
