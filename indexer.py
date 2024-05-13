@@ -8,6 +8,7 @@ from nltk.stem import PorterStemmer
 import shelve
 #import sqlite3
 import csv
+from math import log10
 
 
 index = defaultdict(list)
@@ -159,6 +160,24 @@ def mapIdToUrl(id: int, url: str):
     with shelve.open(f'databases/id_to_url') as db:
         # adds new url to the corresponding docid
         db[str(id)] = url
+        
+
+#peter will put back in its home
+#settng up tf-idf
+#  tot = sum(x for x in term_freq.values())
+#  document.actualTFIDF = 1 + log10(frequency / tot)
+#  document.actualTFIDF = frequency / tot
+
+
+# #can also modify to operate on shelve
+# def TFtoTFIDF(index: defaultdict, tot_pages: int):
+#     '''
+#     Call once after index is built. Multiplies TF by IDF to obtain TF-IDF.
+#     '''
+#     for term, postings in index.values():
+#         idf = log10(tot_pages / len(postings))
+#         for posting in postings:
+#             posting.actualTFIDF *= idf
 
 
 def main():
@@ -171,6 +190,10 @@ def main():
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
         for file in files:
             file_path = os.path.join(root, file) #Get absolute path to file so we can open it
+
+            # with open("out.txt", 'a') as f:
+            #     f.write(f"{id_count:<6} {file_path}\n")
+            print(f"{id_count:<6} {file_path}")
                 
             with open(file_path, "r") as f: #open file then grab data from json file
                 data = json.load(f)
