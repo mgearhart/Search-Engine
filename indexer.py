@@ -5,7 +5,7 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 import nltk
 from nltk.stem import PorterStemmer
-#import shelve
+import shelve
 #import sqlite3
 import csv
 
@@ -92,7 +92,7 @@ def offload():
     '''
     Offloads index into separate db file.
     '''
-    with open('index.csv', 'a', newline='\n') as csvfile:
+    with open('databases/index.csv', 'a', newline='\n') as csvfile:
         indexwriter = csv.writer(csvfile, delimiter=' ',
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
         
@@ -107,7 +107,7 @@ def offload():
 #     '''
 #     Offloads index into separate db file.
 #     '''
-#     with shelve.open(f'index{dumps_count}') as db:
+#     with shelve.open(f'databases/index{dumps_count}') as db:
 #         for term in index: # loop through each term in index
 #             #try:
 #             if term in db:
@@ -125,7 +125,7 @@ def offload():
 #     Offloads index into separate db file.
 #     '''
 #     # create table for index
-#     conn = sqlite3.connect('index_sql.db')
+#     conn = sqlite3.connect('databases/index_sql.db')
 #     cursor = conn.cursor()
 
 #     create_query = f'''CREATE TABLE IF NOT EXISTS _index (
@@ -152,11 +152,14 @@ def offload():
 #     conn.close()
 
 
-def getPostings():
+def mapIdToUrl(id: int, url: str):
     '''
-    Get all Postings for each term.
+    Maps each id to urls using shelve.
     '''
-    pass
+    with shelve.open(f'databases/id_to_url') as db:
+        # adds new url to the corresponding docid
+        db[str(id)] = url
+
 
 def main():
     id_count = 0
@@ -185,6 +188,9 @@ def main():
                 termFreq = termFrequency(stemmed_words) #This is a dict of {word->Freq} for this doc
                 posting = Posting(id_count, url)
                 loadTokens(termFreq, posting)
+
+                # map each id to url using shelve for easier search later on
+                mapIdToUrl(id_count, url)
 
                 # offload index to disk at least 3 times for memory reasons
                 if id_count == (dumps_count * TOTAL_PAGES // DISK_DUMPS) - 1:
