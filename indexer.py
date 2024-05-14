@@ -12,7 +12,7 @@ from math import log10
 
 
 index = defaultdict(list)
-DISK_DUMPS = 18465 # the number to reset the index and offload it
+DISK_DUMPS = 18 # the number to reset the index and offload it
 
 
 class Posting():
@@ -101,56 +101,6 @@ def offload(dump_count: int):
             indexwriter.writerow([term, index[term]])
 
 
-# shelve db implementation
-# def offload(dumps_count:int):
-#     '''
-#     Offloads index into separate db file.
-#     '''
-#     with shelve.open(f'databases/index{dumps_count}') as db:
-#         for term in index: # loop through each term in index
-#             #try:
-#             if term in db:
-#                 db[term] = db[term] + index[term] # append each term's postings to the key stored in disk if it already exists
-#             #except:
-#             else:
-#                 db[term] = index[term] # if the term doesn't exist, create a new key for it
-    
-#         index.clear() # clear the index for more terms
-
-
-# sql db implementation
-# def offload():
-#     '''
-#     Offloads index into separate db file.
-#     '''
-#     # create table for index
-#     conn = sqlite3.connect('databases/index_sql.db')
-#     cursor = conn.cursor()
-
-#     create_query = f'''CREATE TABLE IF NOT EXISTS _index (
-#                     term TEXT, 
-#                     docid INT, 
-#                     url TEXT, 
-#                     tfidf FLOAT, 
-#                     PRIMARY KEY (term, docid)
-#                     );'''
-
-#     cursor.execute(create_query)
-
-#     # for each index, insert into sql table
-#     for term in index:
-#         for posting in index[term]:
-#             insert_query = f'''INSERT INTO _index (term, docid, url, tfidf) VALUES (?, ?, ?, ?);'''
-        
-#             cursor.execute(insert_query, (term, posting.docid, posting.url, posting.tfidf))
-
-#     # clear the index for more terms
-#     index.clear()
-
-#     conn.commit()
-#     conn.close()
-
-
 def mapIdToUrl(id: int, url: str):
     '''
     Maps each id to urls using shelve.
@@ -211,15 +161,13 @@ def main():
                 loadTokens(termFreq, posting)
 
                 # map each id to url using shelve for easier search later on
-                mapIdToUrl(id_count, url)
+                # mapIdToUrl(id_count, url)
 
                 # offload index to disk at least 3 times for memory reasons
-                if (id_count % DISK_DUMPS == 0):
+                if (id_count != 0 and id_count % DISK_DUMPS == 0):
                     offload(dumps_count)
                     dumps_count += 1
                     index.clear() # reset the index
-
-                print(id_count)
 
                 id_count += 1
                 # print("DEBUG: ", index)
