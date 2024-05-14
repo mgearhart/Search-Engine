@@ -12,7 +12,7 @@ from math import log10
 
 
 index = defaultdict(list)
-DISK_DUMPS = 18 # the number to reset the index and offload it
+DISK_DUMPS = 18465 # the number to reset the index and offload it
 
 
 class Posting():
