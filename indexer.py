@@ -12,8 +12,7 @@ from math import log10
 
 
 index = defaultdict(list)
-DISK_DUMPS = 13 # number of times we want to offload our data into disk
-TOTAL_PAGES = 55393 # exact number
+DISK_DUMPS = 18465 # the number to reset the index and offload it
 
 
 class Posting():
@@ -89,18 +88,17 @@ def loadTokens(term_freq: dict[str, int], document: Posting):
 
 
 # csv db implementation
-def offload():
+def offload(dump_count: int):
     '''
-    Offloads index into separate db file.
+    Sorts the index and then offloads into separate csv file.
     '''
-    with open('databases/index.csv', 'a', newline='\n') as csvfile:
+    csv_file = f'databases/index{dump_count}.csv'
+    with open(csv_file, 'w', newline='\n') as csvfile:
         indexwriter = csv.writer(csvfile, delimiter=' ',
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
         
-        for term in index:
-            indexwriter.writerow([term, index[term]]) #merge later
-        
-        index.clear()
+        for term in sorted(index):
+            indexwriter.writerow([term, index[term]])
 
 
 # shelve db implementation
@@ -216,9 +214,10 @@ def main():
                 mapIdToUrl(id_count, url)
 
                 # offload index to disk at least 3 times for memory reasons
-                if id_count == (dumps_count * TOTAL_PAGES // DISK_DUMPS) - 1:
-                    offload()
+                if (id_count % DISK_DUMPS == 0):
+                    offload(dumps_count)
                     dumps_count += 1
+                    index.clear() # reset the index
 
                 print(id_count)
 
