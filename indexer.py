@@ -3,10 +3,8 @@ import os
 import re
 from collections import defaultdict
 from bs4 import BeautifulSoup
-import nltk
 from nltk.stem import PorterStemmer
 import shelve
-#import sqlite3
 import csv
 from math import log10
 
@@ -161,7 +159,7 @@ def main():
                 loadTokens(termFreq, posting)
 
                 # map each id to url using shelve for easier search later on
-                # mapIdToUrl(id_count, url)
+                mapIdToUrl(id_count, url)
 
                 # offload index to disk at least 3 times for memory reasons
                 if (id_count != 0 and id_count % DISK_DUMPS == 0):
