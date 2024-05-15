@@ -126,6 +126,42 @@ def mapIdToUrl(id: int, url: str):
 #             posting.actualTFIDF *= idf
 
 
+#https://docs.python.org/3/tutorial/inputoutput.html#tut-files
+def mapTermToCSVSeek(csv: str):
+    '''
+    Call on CSV after index is built. Saves to shelve "term_to_seek" {term -> f.seek() position}.
+    Assumes csv is correctly formatted, but allows for empty lines. In particular, assumes
+      each nonempty line begins immediately with the term, followed immediately by TODO DELIM,
+      and has at least one posting.
+    Rewrites "term_to_seek" if already exists.
+    '''
+    num_writes = 0
+    with open(csv, 'r') as f:
+        with shelve.open("term_to_seek", 'n') as db:
+            term = []
+            building_term = True
+            seek = f.tell()
+            while (c := f.read(1)):
+                if c == '\n':
+                    building_term = True
+                elif (building_term):
+                    if not term:
+                        seek = f.tell()
+                    if c == ' ': #TODO DELIM
+                        num_writes += 1
+                        db[''.join(term)] = seek
+                        building_term = False
+                    elif not term:
+                        seek = f.tell()
+                    else:
+                        term.append(c)
+            print(f"num writes : {num_writes}")
+            print(f"shelve size: {len(db)}")
+    print("If the number of writes and shelve size ddidn't print, something went wrong!")
+
+
+
+
 def main():
     id_count = 0
 
