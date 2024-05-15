@@ -45,8 +45,10 @@ def mapTermToCSVSeek(csv: str):
                         seek = f.tell()
                     else:
                         term.append(c)
-            print(f"num writes : {num_writes}")
-            print(f"shelve size: {len(db)}")
+
+    print(f"num writes : {num_writes}")
+    with shelve.open("term_to_seek", 'r') as db:
+        print(f"shelve size: {len(db)}")
     print("If the number of writes and shelve size didn't print, something went wrong!")
     print("If they did, check that they are as expected.")
 
@@ -78,9 +80,10 @@ def verify_mapTermToCSVSeek(csv: str):
                 if (term := ''.join(term)) not in db:
                     print(f"MISSING TERM FROM SHELVE @ csv line {lineno + 1}")
                     print(f'  csv expect   : "{term}"')
-            print(f"shelve size  : {len(db)}")
-            print(f"csv num lines: {lineno + 1}")
-
+    
+    with shelve.open("term_to_seek", 'r') as db:
+        print(f"shelve size  : {len(db)}")
+    print(f"csv num lines: {lineno + 1}")
     print("If the shelve size and number of csv lines didn't print, something went wrong!")
     print("If they did, verify yourself that they are as expected.")
     print("If there were no other prints, then each entry in the shelve appears correctly in the csv, and each term in the csv is in the shelve.")
