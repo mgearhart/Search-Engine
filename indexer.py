@@ -150,6 +150,7 @@ def mapTermToCSVSeek(csv: str):
                     if c == ' ': #TODO DELIM
                         num_writes += 1
                         db[''.join(term)] = seek
+                        term.clear()
                         building_term = False
                     elif not term:
                         seek = f.tell()
@@ -157,10 +158,43 @@ def mapTermToCSVSeek(csv: str):
                         term.append(c)
             print(f"num writes : {num_writes}")
             print(f"shelve size: {len(db)}")
-    print("If the number of writes and shelve size ddidn't print, something went wrong!")
+    print("If the number of writes and shelve size didn't print, something went wrong!")
+    print("If they did, check that they are as expected.")
 
+def verify_mapTermToCSVSeek(csv: str):
+    '''
+    Verifies that each entry in the shelve appears correctly in the csv,
+      and each term in the csv is in the shelve.
+    '''
+    #verify that (term in db) -> f.seek(db[term], whence=0) is the string "term " TODO DELIM
+    with shelve.open("term_to_seek", 'r') as db:
+        with open(csv, 'r') as f:
+                for term in db:
+                    f.seek(db[term], whence=0)
+                    if (actual := f.read(len(term) + 1)) != f"{term} ": #TODO DELIM
+                        print("MISMATCH @ csv.seek({db[term]}, whence=0)")
+                        print(f'  shelve expect: "{term} "') #TODO DELIM
+                        print(f'  csv actual   : "{actual}"')
 
+        #probably switch so the two normal prints happen together
+        #verify that (line in f begins with TODO DELIMITED term) -> (term in db)
+        with open(csv, 'r') as f:
+            for lineno, line in enumerate(f):
+                if not line:
+                    continue
+                term = []
+                while (c := f.read(1)) != ' ': #TODO DELIM
+                    term.append(c)
+                if (term := ''.join(term)) not in db:
+                    print(f"MISSING TERM FROM SHELVE @ csv line {lineno + 1}")
+                    print(f'  csv expect   : "{term}"')
+            print(f"shelve size  : {len(db)}")
+            print(f"csv num lines: {lineno + 1}")
 
+    print("If the shelve size and number of csv lines didn't print, something went wrong!")
+    print("If they did, verify yourself that they are as expected.")
+    print("If there were no other prints, then each entry in the shelve appears correctly in the csv, and each term in the csv is in the shelve.")
+    
 
 def main():
     id_count = 0
