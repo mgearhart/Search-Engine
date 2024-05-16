@@ -50,8 +50,8 @@ def tokenize(content: str) -> list:
     text = soup.get_text(separator = " ", strip = True) #This contains all text including important words, should we only have non-important text in this or does it matter?
     text = text.encode("utf-8", errors="replace").decode("utf-8")
    
-    important_words = re.findall(r'\b\w+\b', ' '.join(important_text).lower())
-    words = re.findall(r'\b\w+\b', text.lower())
+    important_words = re.findall(r'\b[A-Za-z0-9]+\b', ' '.join(important_text).lower())
+    words = re.findall(r'\b[A-Za-z0-9]+\b', text.lower())
 
 
     return words,important_words
