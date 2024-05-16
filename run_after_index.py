@@ -67,7 +67,7 @@ def verify_mapTermToCSVSeek(csv: str):
                 for term in db:
                     f.seek(db[term], whence=0)
                     if (actual := f.read(len(term) + 1)) != f"{term} ": #TODO DELIM
-                        print("MISMATCH @ csv.seek({db[term]}, whence=0)")
+                        print(f"MISMATCH @ csv.seek({db[term]}, whence=0)")
                         print(f'  shelve expect: "{term} "') #TODO DELIM
                         print(f'  csv actual   : "{actual}"')
 
