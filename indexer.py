@@ -42,14 +42,17 @@ def tokenize(content: str) -> list:
     soup = BeautifulSoup(content, "html.parser")
     important_text = [] #contains list of strings from important soup tags
     text = "" #contains one string of all text
-    
+   
     for tag in soup.find_all(["title", "b", "strong", "h1", "h2", "h3"]):
-        important_text.append(tag.get_text() + " ")
+        encoded_text = tag.get_text() + " "
+        important_text.append(encoded_text.encode("utf-8", errors="replace").decode("utf-8"))
+       
     text = soup.get_text(separator = " ", strip = True) #This contains all text including important words, should we only have non-important text in this or does it matter?
-
-    
+    text = text.encode("utf-8", errors="replace").decode("utf-8")
+   
     important_words = re.findall(r'\b\w+\b', ' '.join(important_text).lower())
     words = re.findall(r'\b\w+\b', text.lower())
+
 
     return words,important_words
 
