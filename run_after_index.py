@@ -22,7 +22,7 @@ def mapTermToCSVSeek(csv: str):
     Assumes csv is correctly formatted, but allows for empty lines. In particular, assumes
       each nonempty line begins immediately with the term, followed immediately by TODO DELIM,
       and has at least one posting.
-    Rewrites "term_to_seek" if already exists.
+    REWRITES "term_to_seek" IF ALREADY EXISTS.
     '''
     num_writes = 0
     with open(csv, 'r') as f:
@@ -55,8 +55,8 @@ def mapTermToCSVSeek(csv: str):
 
 def verify_mapTermToCSVSeek(csv: str):
     '''
-    Verifies that each entry in the shelve appears correctly in the csv,
-      and each term in the csv is in the shelve.
+    Verifies that for each shelve (term -> seek), term can be found at csv.seek(seek, whence=0).
+    Verifies each term in the csv is in the shelve.
     '''
     #verify that (term in db) -> f.seek(db[term], whence=0) is the string "term " TODO DELIM
     with shelve.open("term_to_seek", 'r') as db:
@@ -68,7 +68,6 @@ def verify_mapTermToCSVSeek(csv: str):
                         print(f'  shelve expect: "{term} "') #TODO DELIM
                         print(f'  csv actual   : "{actual}"')
 
-        #probably switch so the two normal prints happen together
         #verify that (line in f begins with TODO DELIMITED term) -> (term in db)
         with open(csv, 'r') as f:
             for lineno, line in enumerate(f):
