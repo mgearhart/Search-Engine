@@ -1,6 +1,9 @@
 import shelve
 from collections import defaultdict
 from math import log10
+import sys
+import os
+import csv
 
 
 #commented out for now - will look into later
@@ -86,3 +89,52 @@ def verify_mapTermToCSVSeek(csv: str):
     print("If the shelve size and number of csv lines didn't print, something went wrong!")
     print("If they did, verify yourself that they are as expected.")
     print("If there were no other prints, then each entry in the shelve appears correctly in the csv, and each term in the csv is in the shelve.")
+
+
+
+
+
+
+def merge_csv_files(input_files):
+    '''
+    function to merge csv files
+    input = list of file paths to csv's
+    Basically loads chunks of the csv's into a dict, sorts it then loads into final csv
+    Chose to do it in chunks alphabetically to save memory, so first
+    it loads any {words,docs} that start with 0-5, then 6-a, then b - g  etc.
+    '''
+    alpha_list = "0123456789abcdefghijklmnopqrstuvwxyz"
+    lower_bound = 0
+    upper_bound = 6  # Start with the first 6 characters
+    hashmap = {}
+    output_file = "final_merged.csv"
+    with open(output_file, 'w', newline=''): #this is just to clear the output file before doing anything
+        pass
+    
+    #find all words that appear in multiple docs and are between lower and upper bound
+    while upper_bound <= len(alpha_list):
+        for csv_file in input_files:
+            with open(csv_file, 'r', newline='') as file:
+                reader = csv.reader(file, delimiter='|')
+                for row in reader:
+                    key = row[0].strip()
+                    value = eval(row[1].strip())
+                    
+                    # check if the key starts with a character in the current range
+                    if key[0] in alpha_list[lower_bound:upper_bound]:
+                        if key not in hashmap:
+                            hashmap[key] = []
+                        hashmap[key].extend(value)
+        
+        #increase the bounds for the next iteration
+        lower_bound = upper_bound
+        upper_bound = upper_bound + 6
+        
+        #sort and store in output csv
+        sorted_keys = sorted(hashmap.keys())
+        with open(output_file, 'a', newline='') as out_file:
+            writer = csv.writer(out_file, delimiter='|')
+            for key in sorted_keys:
+                writer.writerow([key, hashmap[key]])
+        
+        hashmap.clear()
