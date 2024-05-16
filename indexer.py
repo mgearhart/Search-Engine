@@ -76,13 +76,14 @@ def termFrequency(words: list) -> dict:
     return termFreq
 
 
-def loadTokens(term_freq: dict[str, int], document: Posting):
+def loadTokens(term_freq: dict[str, int], id_count: int, url: str):
     '''
     Loads the tokens pulled from a page into our index
     '''
     for term, frequency in term_freq.items():
-        document.setTFIDF(frequency)
-        index[term].append(document)
+        #document.setTFIDF(frequency)
+        #index[term].append(document)
+        index[term].append(Posting(id_count, url, frequency))
 
         #settng up tf-idf - commented out for now, will look into it later
         #  tot = sum(x for x in term_freq.values())
@@ -142,8 +143,8 @@ def main():
                 # using var words here to get term freq, maybe we want to use both words and important
                 # words, and count important words twice to increase their pull in the index?
                 termFreq = termFrequency(stemmed_words) #This is a dict of {word->Freq} for this doc
-                posting = Posting(id_count, url)
-                loadTokens(termFreq, posting)
+                #posting = Posting(id_count, url)
+                loadTokens(termFreq, id_count, url)
 
                 # map each id to url using shelve for easier search later on
                 mapIdToUrl(id_count, url)
@@ -154,7 +155,13 @@ def main():
                     dumps_count += 1
                     index.clear() # reset the index
 
+                # final offload to csv
+                if (id_count == 55392):
+                    offload(dumps_count)
+                    index.clear()
+
                 id_count += 1
+
 
 
 if __name__ == "__main__":
