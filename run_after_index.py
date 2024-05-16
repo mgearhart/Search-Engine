@@ -103,6 +103,7 @@ def merge_csv_files(input_files):
     Chose to do it in chunks alphabetically to save memory, so first
     it loads any {words,docs} that start with 0-5, then 6-a, then b - g  etc.
     '''
+    csv.field_size_limit(sys.maxsize)
     alpha_list = "0123456789abcdefghijklmnopqrstuvwxyz"
     lower_bound = 0
     upper_bound = 6  # Start with the first 6 characters
