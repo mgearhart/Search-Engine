@@ -29,10 +29,10 @@ def mapTermToCSVSeek(csv: str):
     '''
     num_writes = 0
     with open(csv, 'r') as f:
-        with shelve.open("term_to_seek.db", 'n') as db:
+        with shelve.open("term_to_seek", 'n') as db:
             term = []
+            seek = f.tell()
             while (line := f.readline()):
-                seek = f.tell()
                 for c in line:
                     if c == '|':
                         break
@@ -41,9 +41,10 @@ def mapTermToCSVSeek(csv: str):
                 db[''.join(term)] = seek
                 num_writes += 1
                 term.clear()
+                seek = f.tell()
 
     print(f"num writes : {num_writes}")
-    with shelve.open("term_to_seek.db", 'r') as db:
+    with shelve.open("term_to_seek", 'r') as db:
         print(f"shelve size: {len(db)}")
     print("If the number of writes and shelve size didn't print, something went wrong!")
     print("If they did, check that they are as expected.")
@@ -55,28 +56,30 @@ def verify_mapTermToCSVSeek(csv: str):
     Verifies each term in the csv is in the shelve.
     '''
     #verify that (term in db) -> f.seek(db[term], whence=0) is the string "term|"
-    with shelve.open("term_to_seek.db", 'r') as db:
+    with shelve.open("term_to_seek", 'r') as db:
         with open(csv, 'r') as f:
-                for term in db:
-                    f.seek(db[term], whence=0)
-                    if (actual := f.read(len(term) + 1)) != f"{term}|":
-                        print(f"MISMATCH @ csv.seek({db[term]}, whence=0)")
-                        print(f'  shelve expect: "{term}|"')
-                        print(f'  csv actual   : "{actual}"')
+            for term in db:
+                print(term)
+                f.seek(db[term], 0)
+                if (actual := f.read(len(term) + 1)) != f"{term}|":
+                    print(f"MISMATCH @ csv.seek({db[term]}, whence=0)")
+                    print(f'  shelve expect: "{term}|"')
+                    print(f'  csv actual   : "{actual}"')
 
         #verify that (line in f begins with '|'-delimited term) -> (term in db)
         with open(csv, 'r') as f:
             for lineno, line in enumerate(f):
                 if not line:
-                    continue
+                    break
+                print(lineno)
                 term = []
                 while (c := f.read(1)) != '|':
                     term.append(c)
                 if (term := ''.join(term)) not in db:
                     print(f"MISSING TERM FROM SHELVE @ csv line {lineno + 1}")
                     print(f'  csv expect   : "{term}"')
-    
-    with shelve.open("term_to_seek.db", 'r') as db:
+            print('while loop done')
+    with shelve.open("term_to_seek", 'r') as db:
         print(f"shelve size  : {len(db)}")
     print(f"csv num lines: {lineno + 1}")
     print("If the shelve size and number of csv lines didn't print, something went wrong!")
