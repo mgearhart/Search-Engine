@@ -31,7 +31,7 @@ def mapTermToCSVSeek(csv: str):
     with open(csv, 'r') as f:
         with shelve.open("term_to_seek.db", 'n') as db:
             term = []
-            while (line := f.readline()): #TODO this doesnt actually handle empty lines in the middle of the file
+            while (line := f.readline()):
                 seek = f.tell()
                 for c in line:
                     if c == '|':
