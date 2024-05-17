@@ -23,7 +23,7 @@ def mapTermToCSVSeek(csv: str):
     '''
     Call on CSV after index is built. Saves to shelve "term_to_seek" {term -> f.seek() position}.
     Assumes csv is correctly formatted, but allows for empty lines. In particular, assumes
-      each nonempty line begins immediately with the term, followed immediately by TODO DELIM,
+      each nonempty line begins immediately with the term, followed immediately by |,
       and has at least one posting.
     REWRITES "term_to_seek" IF ALREADY EXISTS.
     '''
@@ -39,7 +39,7 @@ def mapTermToCSVSeek(csv: str):
                 elif (building_term):
                     if not term:
                         seek = f.tell()
-                    if c == ' ': #TODO DELIM
+                    if c == '|':
                         num_writes += 1
                         db[''.join(term)] = seek
                         term.clear()
@@ -61,23 +61,23 @@ def verify_mapTermToCSVSeek(csv: str):
     Verifies that for each shelve (term -> seek), term can be found at csv.seek(seek, whence=0).
     Verifies each term in the csv is in the shelve.
     '''
-    #verify that (term in db) -> f.seek(db[term], whence=0) is the string "term " TODO DELIM
+    #verify that (term in db) -> f.seek(db[term], whence=0) is the string "term|"
     with shelve.open("term_to_seek", 'r') as db:
         with open(csv, 'r') as f:
                 for term in db:
                     f.seek(db[term], whence=0)
-                    if (actual := f.read(len(term) + 1)) != f"{term} ": #TODO DELIM
+                    if (actual := f.read(len(term) + 1)) != f"{term}|":
                         print(f"MISMATCH @ csv.seek({db[term]}, whence=0)")
-                        print(f'  shelve expect: "{term} "') #TODO DELIM
+                        print(f'  shelve expect: "{term}|"')
                         print(f'  csv actual   : "{actual}"')
 
-        #verify that (line in f begins with TODO DELIMITED term) -> (term in db)
+        #verify that (line in f begins with '|'-delimited term) -> (term in db)
         with open(csv, 'r') as f:
             for lineno, line in enumerate(f):
                 if not line:
                     continue
                 term = []
-                while (c := f.read(1)) != ' ': #TODO DELIM
+                while (c := f.read(1)) != '|':
                     term.append(c)
                 if (term := ''.join(term)) not in db:
                     print(f"MISSING TERM FROM SHELVE @ csv line {lineno + 1}")
@@ -89,10 +89,6 @@ def verify_mapTermToCSVSeek(csv: str):
     print("If the shelve size and number of csv lines didn't print, something went wrong!")
     print("If they did, verify yourself that they are as expected.")
     print("If there were no other prints, then each entry in the shelve appears correctly in the csv, and each term in the csv is in the shelve.")
-
-
-
-
 
 
 def merge_csv_files(input_files):
