@@ -131,7 +131,3 @@ def merge_csv_files(input_files):
                 writer.writerow([key, hashmap[key]])
         
         hashmap.clear()
-
-
-if __name__ == "__main__":
-    mapTermToCSVSeek("final_merged.csv")
