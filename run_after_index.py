@@ -21,36 +21,29 @@ import csv
 #https://docs.python.org/3/tutorial/inputoutput.html#tut-files
 def mapTermToCSVSeek(csv: str):
     '''
-    Call on CSV after index is built. Saves to shelve "term_to_seek" {term -> f.seek() position}.
+    Call on CSV after index is built. Saves to shelve "term_to_seek.db" {term -> f.seek() position}.
     Assumes csv is correctly formatted, but allows for empty lines. In particular, assumes
       each nonempty line begins immediately with the term, followed immediately by |,
       and has at least one posting.
-    REWRITES "term_to_seek" IF ALREADY EXISTS.
+    REWRITES "term_to_seek.db" IF ALREADY EXISTS.
     '''
     num_writes = 0
     with open(csv, 'r') as f:
-        with shelve.open("term_to_seek", 'n') as db:
+        with shelve.open("term_to_seek.db", 'n') as db:
             term = []
-            building_term = True
-            seek = f.tell()
-            while (c := f.read(1)):
-                if c == '\n':
-                    building_term = True
-                elif (building_term):
-                    if not term:
-                        seek = f.tell()
+            while (line := f.readline()): #TODO this doesnt actually handle empty lines in the middle of the file
+                seek = f.tell()
+                for c in line:
                     if c == '|':
-                        num_writes += 1
-                        db[''.join(term)] = seek
-                        term.clear()
-                        building_term = False
-                    elif not term:
-                        seek = f.tell()
-                    else:
-                        term.append(c)
+                        break
+                    term.append(c)
+                print(f'About to write "{''.join(term)}"->{seek}')
+                db[''.join(term)] = seek
+                num_writes += 1
+                term.clear()
 
     print(f"num writes : {num_writes}")
-    with shelve.open("term_to_seek", 'r') as db:
+    with shelve.open("term_to_seek.db", 'r') as db:
         print(f"shelve size: {len(db)}")
     print("If the number of writes and shelve size didn't print, something went wrong!")
     print("If they did, check that they are as expected.")
@@ -62,7 +55,7 @@ def verify_mapTermToCSVSeek(csv: str):
     Verifies each term in the csv is in the shelve.
     '''
     #verify that (term in db) -> f.seek(db[term], whence=0) is the string "term|"
-    with shelve.open("term_to_seek", 'r') as db:
+    with shelve.open("term_to_seek.db", 'r') as db:
         with open(csv, 'r') as f:
                 for term in db:
                     f.seek(db[term], whence=0)
@@ -83,7 +76,7 @@ def verify_mapTermToCSVSeek(csv: str):
                     print(f"MISSING TERM FROM SHELVE @ csv line {lineno + 1}")
                     print(f'  csv expect   : "{term}"')
     
-    with shelve.open("term_to_seek", 'r') as db:
+    with shelve.open("term_to_seek.db", 'r') as db:
         print(f"shelve size  : {len(db)}")
     print(f"csv num lines: {lineno + 1}")
     print("If the shelve size and number of csv lines didn't print, something went wrong!")
@@ -135,3 +128,7 @@ def merge_csv_files(input_files):
                 writer.writerow([key, hashmap[key]])
         
         hashmap.clear()
+
+
+if __name__ == "__main__":
+    mapTermToCSVSeek("final_merged.csv")
