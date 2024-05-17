@@ -112,7 +112,7 @@ def mapIdToUrl(id: int, url: str):
     '''
     Maps each id to urls using shelve.
     '''
-    with shelve.open(f'databases/id_to_url.db', writeback=True) as db:
+    with shelve.open(f'databases/id_to_url') as db:
         # adds new url to the corresponding docid
         db[str(id)] = url
     
@@ -137,11 +137,11 @@ def main():
                 
                 url = data.get("url", "") # Our data from the json
                 content = data.get("content", "")
-                # encoding = data.get("encoding", "")
+                encoding = data.get("encoding", "")
                 
                 words,important_words = tokenize(content) #returns lists of words
                 stemmed_words = stemWords(words) #stems the non important words
-                # stemmed_important_words = stemWords(important_words) #stems important words
+                stemmed_important_words = stemWords(important_words) #stems important words
                 
                 # using var words here to get term freq, maybe we want to use both words and important
                 # words, and count important words twice to increase their pull in the index?
