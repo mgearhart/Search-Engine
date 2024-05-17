@@ -37,7 +37,7 @@ def mapTermToCSVSeek(csv: str):
                     if c == '|':
                         break
                     term.append(c)
-                print(f'About to write "{''.join(term)}"->{seek}')
+                print(f'About to write {"".join(term)}->{seek}')
                 db[''.join(term)] = seek
                 num_writes += 1
                 term.clear()
