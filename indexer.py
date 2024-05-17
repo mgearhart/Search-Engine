@@ -112,7 +112,7 @@ def mapIdToUrl(id: int, url: str):
     '''
     Maps each id to urls using shelve.
     '''
-    with shelve.open(f'databases/id_to_url.db') as db:
+    with shelve.open(f'databases/id_to_url.db', writeback=True) as db:
         # adds new url to the corresponding docid
         db[str(id)] = url
     
