@@ -126,15 +126,16 @@ def main():
     dumps_count = 1
     
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
-        #PETER DEBUG
-        dirs.sort()
-        with open("sortedwalk.txt", 'a') as f:
-            f.write(f"{root}\n")
-        for file in sorted(files):
-            with open("sortedwalk.txt", 'a') as f:
-                f.write(f"{file}\n")
-            continue
-            #PETER DEBUG
+        # #sort experiment
+        # dirs.sort()
+        # with open("sortedwalk.txt", 'a') as f:
+        #     f.write(f"{root}\n")
+        # for file in sorted(files):
+        #     with open("sortedwalk.txt", 'a') as f:
+        #         f.write(f"{file}\n")
+        #     continue
+        #     #sort experiment
+        for file in files:
             file_path = os.path.join(root, file) #Get absolute path to file so we can open it
 
             # with open("out.txt", 'a') as f:
@@ -150,7 +151,7 @@ def main():
                 
                 words,important_words = tokenize(content) #returns lists of words
                 stemmed_words = stemWords(words) #stems the non important words
-                # ZZstemmed_important_words = stemWords(important_words) #stems important words
+                # stemmed_important_words = stemWords(important_words) #stems important words
                 
                 # using var words here to get term freq, maybe we want to use both words and important
                 # words, and count important words twice to increase their pull in the index?
