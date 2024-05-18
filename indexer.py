@@ -125,7 +125,15 @@ def main():
     dumps_count = 1
     
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
-        for file in files:
+        #PETER DEBUG
+        dirs.sort()
+        with open("sortedwalk.txt", 'a') as f:
+            f.write(f"{root}\n")
+        for file in sorted(files):
+            with open("sortedwalk.txt", 'a') as f:
+                f.write(f"{file}\n")
+            continue
+            #PETER DEBUG
             file_path = os.path.join(root, file) #Get absolute path to file so we can open it
 
             # with open("out.txt", 'a') as f:
