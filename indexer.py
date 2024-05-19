@@ -113,9 +113,9 @@ def mapIdToUrl(id: int, url: str):
     Maps each id to urls using shelve.
     '''
     #with shelve.open(f'databases/id_to_url') as db: #ANGELA
-    with shelve.open(f'databases/id_to_url.db', writeback=True) as db: #PERHAPS WINDOWS
+    #with shelve.open(f'databases/id_to_url.db', writeback=True) as db: #PERHAPS WINDOWS
         # adds new url to the corresponding docid
-        db[str(id)] = url
+    id_to_url_db[str(id)] = url
     
 
 def main():
@@ -169,6 +169,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with shelve.open(f'databases/id_to_url') as id_to_url_db: #ANGELA
+    #with shelve.open(f'databases/id_to_url.db', writeback=True) as db: #PERHAPS WINDOWS
+        main()
+
     # for words in index: # debug index
     #     print(words, '-', index[words])
