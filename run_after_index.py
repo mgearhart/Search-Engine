@@ -33,6 +33,9 @@ def mapTermToCSVSeek(csv: str):
             term = []
             seek = f.tell()
             while (line := f.readline()):
+                if line.isspace():
+                    seek = f.tell()
+                    continue
                 for c in line:
                     if c == '|':
                         break
@@ -53,7 +56,7 @@ def mapTermToCSVSeek(csv: str):
 def verify_mapTermToCSVSeek(csv: str):
     '''
     Verifies that for each shelve (term -> seek), term can be found at csv.seek(seek, whence=0).
-    Verifies each term in the csv is in the shelve.
+    Verifies each term in the csv is mapped onto correctly in the shelve.
     '''
     #verify that (term in db) -> f.seek(db[term], whence=0) is the string "term|"
     with shelve.open("term_to_seek", 'r') as db:
@@ -62,29 +65,41 @@ def verify_mapTermToCSVSeek(csv: str):
                 print(term)
                 f.seek(db[term], 0)
                 if (actual := f.read(len(term) + 1)) != f"{term}|":
-                    print(f"MISMATCH @ csv.seek({db[term]}, whence=0)")
+                    print(f"SHELVE -> CSV MISMATCH @ csv.seek({db[term]}, whence=0)")
                     print(f'  shelve expect: "{term}|"')
                     print(f'  csv actual   : "{actual}"')
 
-        #verify that (line in f begins with '|'-delimited term) -> (term in db)
+        #verify that (line in f begins with '|'-delimited term @ tell) -> (term in db and db[term] = tell)
         with open(csv, 'r') as f:
-            for lineno, line in enumerate(f):
-                if not line:
-                    break
-                print(lineno)
+            tell = f.tell()
+            lineno = 0
+            while (line := f.readline()):
+                lineno += 1
+                if line.isspace():
+                    tell = f.tell()
+                    continue
                 term = []
-                while (c := f.read(1)) != '|':
+                for c in line:
+                    if c == '|':
+                        break
                     term.append(c)
-                if (term := ''.join(term)) not in db:
-                    print(f"MISSING TERM FROM SHELVE @ csv line {lineno + 1}")
+                print(lineno, term := ''.join(term))
+                if term not in db:
+                    print(f"TERM @ csv line {lineno} MISSING FROM SHELVE")
                     print(f'  csv expect   : "{term}"')
-            print('while loop done')
+                elif db[term] != tell:
+                    print(f"BAD SEEK FROM SHELVE FOR TERM @ csv line {lineno}")
+                    print(f'  term         : "{term}"')
+                    print(f'  csv tell     : {tell}')
+                    print(f'  shelve seek  : {db[term]}')
+                tell = f.tell()
+
     with shelve.open("term_to_seek", 'r') as db:
         print(f"shelve size  : {len(db)}")
-    print(f"csv num lines: {lineno + 1}")
+    print(f"csv num lines: {lineno}")
     print("If the shelve size and number of csv lines didn't print, something went wrong!")
     print("If they did, verify yourself that they are as expected.")
-    print("If there were no other prints, then each entry in the shelve appears correctly in the csv, and each term in the csv is in the shelve.")
+    print("If there were no other prints, then each entry in the shelve appears correctly in the csv, and csv term is correctly mapped onto in the shelve.")
 
 
 def merge_csv_files(input_files):
@@ -95,7 +110,8 @@ def merge_csv_files(input_files):
     Chose to do it in chunks alphabetically to save memory, so first
     it loads any {words,docs} that start with 0-5, then 6-a, then b - g  etc.
     '''
-    csv.field_size_limit(sys.maxsize)
+    #csv.field_size_limit(sys.maxsize)
+    csv.field_size_limit(2147483647)
     alpha_list = "0123456789abcdefghijklmnopqrstuvwxyz"
     lower_bound = 0
     upper_bound = 6  # Start with the first 6 characters
