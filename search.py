@@ -63,59 +63,60 @@ def intersect(list1: list, list2: list) -> list:
 
 
 def search():
-    while True:
-        # console interface for search
-        query = input("Please enter your query: ")
+    with shelve.open('term_to_seek', 'r') as db1:
+        with shelve.open('databases/id_to_url', 'r') as db2:
+            while True:
+                # console interface for search
+                query = input("Please enter your query: ")
 
-        # split query / process words
-        query_words = tokenize(query) #returns list of words
-        stemmed_query_words = stemWords(query_words) #stems words in query
+                # split query / process words
+                query_words = tokenize(query) #returns list of words
+                stemmed_query_words = stemWords(query_words) #stems words in query
 
-        # lookup urls for each term
-        with open('final_merged.csv', 'r') as f:
-            with shelve.open('term_to_seek', 'r') as db:
-                docid_list = []
-                # DOCID_SET = set() #debug
-                is_first_term = True
+                # lookup urls for each term
+                with open('final_merged.csv', 'r') as f:
+                        docid_list = []
+                        # DOCID_SET = set() #debug
+                        is_first_term = True
 
-                for term in stemmed_query_words:
-                    indexreader = csv.reader(f, delimiter='(')
-                    if term not in db:
-                        docid_list = [] #TODO TERM DOES NOT APPEAR IN THE INDEX, DIE FOR NOW
-                        continue
-                    else:
-                        f.seek(db[term], 0) #moves pointer to the beginning of term line
-                    row = next(indexreader) #gets line
+                        for term in stemmed_query_words:
+                            indexreader = csv.reader(f, delimiter='(')
+                            if term not in db1:
+                                docid_list = [] #TODO TERM DOES NOT APPEAR IN THE INDEX, DIE FOR NOW
+                                continue
+                            else:
+                                f.seek(db1[term], 0) #moves pointer to the beginning of term line
+                            row = next(indexreader) #gets line
 
-                    # parses index, adds docids to set (ignoring first term element)
-                    if is_first_term:
-                        docid_list = [int(row[i].split(', ')[0]) for i in range(1, len(row))]
-                        # DOCID_SET = {int(row[i].split(', ')[0]) for i in range(1, len(row))}
-                        is_first_term = False
-                    else:
-                        docid_list = intersect(docid_list, [int(row[i].split(', ')[0]) for i in range(1, len(row))]) #for every subsequent term, keep only intersection
-                        # DOCID_SET &= {int(row[i].split(', ')[0]) for i in range(1, len(row))}
+                            # parses index, adds docids to set (ignoring first term element)
+                            if is_first_term:
+                                docid_list = [int(row[i].split(', ')[0]) for i in range(1, len(row))]
+                                # DOCID_SET = {int(row[i].split(', ')[0]) for i in range(1, len(row))}
+                                is_first_term = False
+                            else:
+                                docid_list = intersect(docid_list, [int(row[i].split(', ')[0]) for i in range(1, len(row))]) #for every subsequent term, keep only intersection
+                                # DOCID_SET &= {int(row[i].split(', ')[0]) for i in range(1, len(row))}
 
-        # get url for each id
-        urls = []
-        with shelve.open('databases/id_to_url', 'r') as db:
-            # print("LIST")
-            for id in docid_list:
-                # print(id) #test
-                urls.append(db[str(id)])
+                # get url for each id
+                urls = []
+                    # print("LIST")
+                for id in docid_list:
+                        # print(id) #test
+                    urls.append(db2[str(id)])
 
-            # print("SET")
-            # for id in DOCID_SET:
-            #     print(id) #test
+                    # print("SET")
+                    # for id in DOCID_SET:
+                    #     print(id) #test
 
-            # print("list == set:", set(docid_list) == DOCID_SET)
-            
+                    # print("list == set:", set(docid_list) == DOCID_SET)
+                    
 
-        # print those urls (should we ever return?)
-        for url in urls:
-            print(url)
-        
-        print(f'\n{len(docid_list)} urls found')
+                # print those urls (should we ever return?)
+                for url in urls:
+                    print(url)
+                
+                print(f'\n{len(docid_list)} urls found')
+
 
 
 if __name__ == "__main__":
