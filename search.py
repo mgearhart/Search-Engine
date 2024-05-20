@@ -62,6 +62,47 @@ def intersect(list1: list, list2: list) -> list:
     return merge
 
 
+
+def webSearch(query: str):
+    '''
+    Uses the search() logic, but designed to be used for the web GUI
+    '''
+    with shelve.open('term_to_seek', 'r') as db1:
+        with shelve.open('databases/id_to_url', 'r') as db2:
+            # split query / process words
+                query_words = tokenize(query) #returns list of words
+                stemmed_query_words = stemWords(query_words) #stems words in query
+
+                # lookup urls for each term
+                with open('final_merged.csv', 'r') as f:
+                        docid_list = []
+                        is_first_term = True
+
+                        for term in stemmed_query_words:
+                            indexreader = csv.reader(f, delimiter='(')
+                            if term not in db1:
+                                docid_list = [] #TODO TERM DOES NOT APPEAR IN THE INDEX, DIE FOR NOW
+                                continue
+                            else:
+                                f.seek(db1[term], 0) #moves pointer to the beginning of term line
+                            row = next(indexreader) #gets line
+
+                            # parses index, adds docids to set (ignoring first term element)
+                            if is_first_term:
+                                docid_list = [int(row[i].split(', ')[0]) for i in range(1, len(row))]
+                                is_first_term = False
+                            else:
+                                docid_list = intersect(docid_list, [int(row[i].split(', ')[0]) for i in range(1, len(row))]) #for every subsequent term, keep only intersection
+
+                # get url for each id
+                urls = []
+                for id in docid_list:
+                    urls.append(db2[str(id)])
+
+    print(f'\n{len(docid_list)} urls found')
+    return urls
+
+
 def search():
     with shelve.open('term_to_seek', 'r') as db1:
         with shelve.open('databases/id_to_url', 'r') as db2:
