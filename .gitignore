@@ -48,3 +48,9 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+#peter
+databases
+
+final_merged.csv
+term_to_seek

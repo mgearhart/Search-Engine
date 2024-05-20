@@ -112,9 +112,10 @@ def mapIdToUrl(id: int, url: str):
     '''
     Maps each id to urls using shelve.
     '''
-    with shelve.open(f'databases/id_to_url') as db:
+    #with shelve.open(f'databases/id_to_url') as db: #ANGELA
+    #with shelve.open(f'databases/id_to_url.db', writeback=True) as db: #PERHAPS WINDOWS
         # adds new url to the corresponding docid
-        db[str(id)] = url
+    id_to_url_db[str(id)] = url
     
 
 def main():
@@ -125,6 +126,15 @@ def main():
     dumps_count = 1
     
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
+        # #sort experiment
+        # dirs.sort()
+        # with open("sortedwalk.txt", 'a') as f:
+        #     f.write(f"{root}\n")
+        # for file in sorted(files):
+        #     with open("sortedwalk.txt", 'a') as f:
+        #         f.write(f"{file}\n")
+        #     continue
+        #     #sort experiment
         for file in files:
             file_path = os.path.join(root, file) #Get absolute path to file so we can open it
 
@@ -137,11 +147,11 @@ def main():
                 
                 url = data.get("url", "") # Our data from the json
                 content = data.get("content", "")
-                encoding = data.get("encoding", "")
+                # encoding = data.get("encoding", "")
                 
                 words,important_words = tokenize(content) #returns lists of words
                 stemmed_words = stemWords(words) #stems the non important words
-                stemmed_important_words = stemWords(important_words) #stems important words
+                # stemmed_important_words = stemWords(important_words) #stems important words
                 
                 # using var words here to get term freq, maybe we want to use both words and important
                 # words, and count important words twice to increase their pull in the index?
@@ -168,6 +178,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with shelve.open(f'databases/id_to_url') as id_to_url_db: #ANGELA
+    #with shelve.open(f'databases/id_to_url.db', writeback=True) as db: #PERHAPS WINDOWS
+        main()
+
     # for words in index: # debug index
     #     print(words, '-', index[words])
