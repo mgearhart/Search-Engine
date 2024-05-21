@@ -67,14 +67,14 @@ def webSearch(query: str):
     '''
     Uses the search() logic, but designed to be used for the web GUI
     '''
-    with shelve.open('term_to_seek', 'r') as db1:
-        with shelve.open('databases/id_to_url', 'r') as db2:
+    with shelve.open('../term_to_seek', 'r') as db1:
+        with shelve.open('../databases/id_to_url', 'r') as db2:
             # split query / process words
                 query_words = tokenize(query) #returns list of words
                 stemmed_query_words = stemWords(query_words) #stems words in query
 
                 # lookup urls for each term
-                with open('final_merged.csv', 'r') as f:
+                with open('../final_merged.csv', 'r') as f:
                         docid_list = []
                         is_first_term = True
 
