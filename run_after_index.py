@@ -4,6 +4,9 @@ from math import log10
 import sys
 import os
 import csv
+import json
+
+index = {}
 
 
 #commented out for now - will look into later
@@ -146,3 +149,48 @@ def merge_csv_files(input_files):
                 writer.writerow([key, hashmap[key]])
         
         hashmap.clear()
+        
+def tfidf():
+    '''
+    Function to calculate tfidf for each doc in the posting of each word.
+    Creates a new csv file with tfidf in place of tf for each doc in each posting.
+    CALL THIS AFTER MERGE, THE FINAL CSV WILL BE 'final.csv' not 'final_merged.csv'
+    '''
+    csv.field_size_limit(2147483647)
+    
+    with open('idf.json', 'r') as json_file:
+        idf = json.load(json_file)
+    
+
+    id_count = 0
+
+
+    with open('final_merged.csv', 'r') as f:
+        reader = csv.reader(f, delimiter='|')
+        for row in reader:
+            key = row[0].strip()
+            value = eval(row[1].strip()) #list of (docID, tf)
+                
+            for docID, tf in value:
+                tfidf = round(idf[key] * tf, 4)
+                print(f"Term: {key}, DocID: {docID}, TF: {tf}, IDF: {idf[key]}, TF-IDF: {tfidf}")
+                if key not in index:
+                    index[key] = []  # Initialize an empty list if key doesn't exist
+                index[key].append((docID, tfidf))
+                
+            if (id_count != 0 and id_count % 18465 == 0):
+                offload()
+                index.clear() 
+            if (id_count == 55392):
+                offload()
+                index.clear()
+
+            id_count += 1
+    
+    
+def offload():
+    with open('final.csv', 'a', newline='\n') as csvfile:  # Open in append mode
+        indexwriter = csv.writer(csvfile, delimiter='|')
+        
+        for term in sorted(index):
+            indexwriter.writerow([term, index[term]])
