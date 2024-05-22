@@ -12,6 +12,8 @@ index = defaultdict(list)
 DISK_DUMPS = 18465 # the number to reset the index and offload it
 
 id_to_url = {}
+word_doc_count = {}
+idf_values = {}
 
 
 class Posting():
@@ -77,6 +79,11 @@ def termFrequency(words: list) -> dict:
     termFreq = {}
     for word in words:
         termFreq[word] = termFreq.get(word, 0) + 1
+
+    for word in termFreq:
+        termFreq[word] = round(1 + log10(termFreq[word]),4)
+        #print(f"Word: {word}, Frequency: {termFreq[word]}")
+    
     return termFreq
 
 
@@ -114,7 +121,11 @@ def mapIdToUrl(id: int, url: str):
     Maps each id to urls using shelve.
     '''
     id_to_url[str(id)] = url
-    
+
+def idf():  ### idf(term) = log( totalNumOfDocs / DocFreq(term))
+    for term,df in word_doc_count.items():
+        idf_values[term] = log10(55393 / (df))
+        #print(f"Term: {term}, DF: {df}, IDF: {idf_values[term]}")
 
 def main():
     id_count = 0
@@ -146,6 +157,13 @@ def main():
                 # using var words here to get term freq, maybe we want to use both words and important
                 # words, and count important words twice to increase their pull in the index?
                 termFreq = termFrequency(stemmed_words) #This is a dict of {word->Freq} for this doc
+                
+                unique_words = set(termFreq.keys())
+                for word in unique_words:
+                    if word not in word_doc_count:
+                        word_doc_count[word] = 0
+                    word_doc_count[word] += 1 #This is a dict of unique key -> how many docs it has appeared in, for use in idf
+                        
                 #posting = Posting(id_count, url)
                 loadTokens(termFreq, id_count, url)
 
@@ -168,8 +186,13 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
+    idf()
     with open("databases/id_to_url.json", "w") as out:
         json.dump(id_to_url, out, indent=4)
+    with open('idf.json', 'w') as json_file: #shoving the idf values in here
+        json.dump(idf_values, json_file)
+    with open('df.json', 'w') as df: #shoving df terms in here for debug, not necessary though
+        json.dump(word_doc_count, df)
+    
     # for words in index: # debug index
     #     print(words, '-', index[words])
