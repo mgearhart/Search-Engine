@@ -4,13 +4,14 @@ import re
 from collections import defaultdict
 from bs4 import BeautifulSoup
 from nltk.stem import PorterStemmer
-import shelve
 import csv
 from math import log10
 
 
 index = defaultdict(list)
 DISK_DUMPS = 18465 # the number to reset the index and offload it
+
+id_to_url = {}
 
 
 class Posting():
@@ -112,10 +113,7 @@ def mapIdToUrl(id: int, url: str):
     '''
     Maps each id to urls using shelve.
     '''
-    #with shelve.open(f'databases/id_to_url') as db: #ANGELA
-    #with shelve.open(f'databases/id_to_url.db', writeback=True) as db: #PERHAPS WINDOWS
-        # adds new url to the corresponding docid
-    id_to_url_db[str(id)] = url
+    id_to_url[str(id)] = url
     
 
 def main():
@@ -126,16 +124,8 @@ def main():
     dumps_count = 1
     
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
-        # #sort experiment
-        # dirs.sort()
-        # with open("sortedwalk.txt", 'a') as f:
-        #     f.write(f"{root}\n")
-        # for file in sorted(files):
-        #     with open("sortedwalk.txt", 'a') as f:
-        #         f.write(f"{file}\n")
-        #     continue
-        #     #sort experiment
-        for file in files:
+        dirs.sort()                 #TODO not run yet, sorted file order
+        for file in sorted(files):  #TODO not run yet, sorted file order
             file_path = os.path.join(root, file) #Get absolute path to file so we can open it
 
             # with open("out.txt", 'a') as f:
@@ -176,11 +166,10 @@ def main():
                 id_count += 1
 
 
-
 if __name__ == "__main__":
-    with shelve.open(f'databases/id_to_url') as id_to_url_db: #ANGELA
-    #with shelve.open(f'databases/id_to_url.db', writeback=True) as db: #PERHAPS WINDOWS
-        main()
-
+    main()
+    
+    with open("databases/id_to_url.json", "w") as out:
+        json.dump(id_to_url, out, indent=4)
     # for words in index: # debug index
     #     print(words, '-', index[words])

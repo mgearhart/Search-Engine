@@ -1,8 +1,10 @@
 import shelve
 import csv
-#import sqlite3
+import json
 import re
 from indexer import stemWords
+
+from time import time
 
 
 # sql implementation
@@ -28,7 +30,6 @@ from indexer import stemWords
 #     conn.close()
 
 #     return results
-
 
 def tokenize(content: str) -> list:
     '''
@@ -104,60 +105,64 @@ def webSearch(query: str):
 
 
 def search():
-    with shelve.open('term_to_seek', 'r') as db1:
-        with shelve.open('databases/id_to_url', 'r') as db2:
-            while True:
-                # console interface for search
-                query = input("Please enter your query: ")
+    with open("databases/id_to_url.json", 'r') as f:
+        id_to_url = json.load(f)
+    with open("databases/term_to_seek.json", 'r') as f:
+        term_to_seek = json.load(f)
 
-                # split query / process words
-                query_words = tokenize(query) #returns list of words
-                stemmed_query_words = stemWords(query_words) #stems words in query
+    while True:
+        # console interface for search
+        query = input("Please enter your query: ")
+        t0 = time()
 
-                # lookup urls for each term
-                with open('final_merged.csv', 'r') as f:
-                        docid_list = []
-                        # DOCID_SET = set() #debug
-                        is_first_term = True
+        # split query / process words
+        query_words = tokenize(query) #returns list of words
+        stemmed_query_words = stemWords(query_words) #stems words in query
 
-                        for term in stemmed_query_words:
-                            indexreader = csv.reader(f, delimiter='(')
-                            if term not in db1:
-                                docid_list = [] #TODO TERM DOES NOT APPEAR IN THE INDEX, DIE FOR NOW
-                                continue
-                            else:
-                                f.seek(db1[term], 0) #moves pointer to the beginning of term line
-                            row = next(indexreader) #gets line
+        # lookup urls for each term
+        with open('final_merged.csv', 'r') as f:
+                docid_list = []
+                # DOCID_SET = set() #debug
+                is_first_term = True
 
-                            # parses index, adds docids to set (ignoring first term element)
-                            if is_first_term:
-                                docid_list = [int(row[i].split(', ')[0]) for i in range(1, len(row))]
-                                # DOCID_SET = {int(row[i].split(', ')[0]) for i in range(1, len(row))}
-                                is_first_term = False
-                            else:
-                                docid_list = intersect(docid_list, [int(row[i].split(', ')[0]) for i in range(1, len(row))]) #for every subsequent term, keep only intersection
-                                # DOCID_SET &= {int(row[i].split(', ')[0]) for i in range(1, len(row))}
+                for term in stemmed_query_words:
+                    indexreader = csv.reader(f, delimiter='(')
+                    if term not in term_to_seek:
+                        docid_list = [] #TODO TERM DOES NOT APPEAR IN THE INDEX, DIE FOR NOW
+                        break           #TODO TERM DOES NOT APPEAR IN THE INDEX, DIE FOR NOW
+                    else:
+                        f.seek(term_to_seek[term], 0) #moves pointer to the beginning of term line
+                    row = next(indexreader) #gets line
 
-                # get url for each id
-                urls = []
-                    # print("LIST")
-                for id in docid_list:
-                        # print(id) #test
-                    urls.append(db2[str(id)])
+                    # parses index, adds docids to set (ignoring first term element)
+                    if is_first_term:
+                        docid_list = [int(row[i].split(', ')[0]) for i in range(1, len(row))]
+                        # DOCID_SET = {int(row[i].split(', ')[0]) for i in range(1, len(row))}
+                        is_first_term = False
+                    else:
+                        docid_list = intersect(docid_list, [int(row[i].split(', ')[0]) for i in range(1, len(row))]) #for every subsequent term, keep only intersection
+                        # DOCID_SET &= {int(row[i].split(', ')[0]) for i in range(1, len(row))}
 
-                    # print("SET")
-                    # for id in DOCID_SET:
-                    #     print(id) #test
+        # get url for each id
+        urls = []
+            # print("LIST")
+        for id in docid_list:
+                # print(id) #test
+            urls.append(id_to_url[str(id)])
 
-                    # print("list == set:", set(docid_list) == DOCID_SET)
-                    
+            # print("SET")
+            # for id in DOCID_SET:
+            #     print(id) #test
 
-                # print those urls (should we ever return?)
-                for url in urls:
-                    print(url)
+        # print("list == set:", set(docid_list) == DOCID_SET)
                 
-                print(f'\n{len(docid_list)} urls found')
 
+        # print those urls (should we ever return?)
+        # for url in urls:
+        #     print(url)
+            
+        print(f'\n{len(docid_list)} urls found')
+        print("Time Elapsed:", time() - t0)
 
 
 if __name__ == "__main__":
