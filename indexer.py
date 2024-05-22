@@ -126,16 +126,8 @@ def main():
     dumps_count = 1
     
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
-        # #sort experiment
-        # dirs.sort()
-        # with open("sortedwalk.txt", 'a') as f:
-        #     f.write(f"{root}\n")
-        # for file in sorted(files):
-        #     with open("sortedwalk.txt", 'a') as f:
-        #         f.write(f"{file}\n")
-        #     continue
-        #     #sort experiment
-        for file in files:
+        dirs.sort()                 #TODO not run yet, sorted file order
+        for file in sorted(files):  #TODO not run yet, sorted file order
             file_path = os.path.join(root, file) #Get absolute path to file so we can open it
 
             # with open("out.txt", 'a') as f:
@@ -174,7 +166,6 @@ def main():
                     index.clear()
 
                 id_count += 1
-
 
 
 if __name__ == "__main__":
