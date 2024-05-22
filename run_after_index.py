@@ -1,4 +1,4 @@
-import shelve
+import json
 from collections import defaultdict
 from math import log10
 import sys
@@ -21,55 +21,56 @@ import csv
 #https://docs.python.org/3/tutorial/inputoutput.html#tut-files
 def mapTermToCSVSeek(csv: str):
     '''
-    Call on CSV after index is built. Saves to shelve "term_to_seek.db" {term -> f.seek() position}.
+    Call on CSV after index is built. Saves to "databases/term_to_seek.json" {term -> f.seek() position}.
     Assumes csv is correctly formatted, but allows for empty lines. In particular, assumes
       each nonempty line begins immediately with the term, followed immediately by |,
       and has at least one posting.
-    REWRITES "term_to_seek.db" IF ALREADY EXISTS.
+    REWRITES "databases/term_to_seek.json" IF ALREADY EXISTS.
     '''
-    num_writes = 0
+    TERM_TO_SEEK = dict()
     with open(csv, 'r') as f:
-        with shelve.open("term_to_seek", 'n') as db:
-            term = []
-            seek = f.tell()
-            while (line := f.readline()):
-                if line.isspace():
-                    seek = f.tell()
-                    continue
-                for c in line:
-                    if c == '|':
-                        break
-                    term.append(c)
-                print(f'About to write {"".join(term)}->{seek}')
-                db[''.join(term)] = seek
-                num_writes += 1
-                term.clear()
+        term = []
+        seek = f.tell()
+        while (line := f.readline()):
+            if line.isspace():
                 seek = f.tell()
+                continue
+            for c in line:
+                if c == '|':
+                    break
+                term.append(c)
+            print(f'About to write {"".join(term)}->{seek}')
+            TERM_TO_SEEK[''.join(term)] = seek
+            term.clear()
+            seek = f.tell()
 
-    print(f"num writes : {num_writes}")
-    with shelve.open("term_to_seek", 'r') as db:
-        print(f"shelve size: {len(db)}")
-    print("If the number of writes and shelve size didn't print, something went wrong!")
-    print("If they did, check that they are as expected.")
+    print("Begin write 'databases/term_to_seek.json'")
+    with open("databases/term_to_seek.json", 'w') as out:
+        json.dump(TERM_TO_SEEK, out, indent=4)
+    print(f"term_to_seek size: {len(TERM_TO_SEEK)}")
+    print("Check that term_to_seek size printed and that it is as expected.")
 
 
-def verify_mapTermToCSVSeek(csv: str):
+#TODO why did the lineno once print something incorrect?
+def verify_mapTermToCSVSeek(csv: str, json_file: str):
     '''
-    Verifies that for each shelve (term -> seek), term can be found at csv.seek(seek, whence=0).
-    Verifies each term in the csv is mapped onto correctly in the shelve.
+    Verifies that for each json (term -> seek), term can be found at csv.seek(seek, whence=0).
+    Verifies each term in the csv is mapped onto correctly in the json.
     '''
-    #verify that (term in db) -> f.seek(db[term], whence=0) is the string "term|"
-    with shelve.open("term_to_seek", 'r') as db:
-        with open(csv, 'r') as f:
-            for term in db:
-                print(term)
-                f.seek(db[term], 0)
-                if (actual := f.read(len(term) + 1)) != f"{term}|":
-                    print(f"SHELVE -> CSV MISMATCH @ csv.seek({db[term]}, whence=0)")
-                    print(f'  shelve expect: "{term}|"')
-                    print(f'  csv actual   : "{actual}"')
+    with open(json_file, 'r') as f:
+        TERM_TO_SEEK = json.load(f)
 
-        #verify that (line in f begins with '|'-delimited term @ tell) -> (term in db and db[term] = tell)
+    #verify that (term in TERM_TO_SEEK) -> f.seek(TERM_TO_SEEK[term], whence=0) is the string "term|"
+    with open(csv, 'r') as f:
+        for term in TERM_TO_SEEK:
+            print(term)
+            f.seek(TERM_TO_SEEK[term], 0)
+            if (actual := f.read(len(term) + 1)) != f"{term}|":
+                print(f"JSON -> CSV MISMATCH @ csv.seek({TERM_TO_SEEK[term]}, whence=0)")
+                print(f'  json expect : "{term}|"')
+                print(f'  csv actual  : "{actual}"')
+
+        #verify that (line in f begins with '|'-delimited term @ tell) -> (term in json and json[term] = tell)
         with open(csv, 'r') as f:
             tell = f.tell()
             lineno = 0
@@ -84,22 +85,20 @@ def verify_mapTermToCSVSeek(csv: str):
                         break
                     term.append(c)
                 print(lineno, term := ''.join(term))
-                if term not in db:
-                    print(f"TERM @ csv line {lineno} MISSING FROM SHELVE")
-                    print(f'  csv expect   : "{term}"')
-                elif db[term] != tell:
+                if term not in TERM_TO_SEEK:
+                    print(f"TERM @ csv line {lineno} MISSING FROM JSON")
+                    print(f'  csv expect: "{term}"')
+                elif TERM_TO_SEEK[term] != tell:
                     print(f"BAD SEEK FROM SHELVE FOR TERM @ csv line {lineno}")
-                    print(f'  term         : "{term}"')
-                    print(f'  csv tell     : {tell}')
-                    print(f'  shelve seek  : {db[term]}')
+                    print(f'  term      : "{term}"')
+                    print(f'  csv tell  : {tell}')
+                    print(f'  json seek : {TERM_TO_SEEK[term]}')
                 tell = f.tell()
 
-    with shelve.open("term_to_seek", 'r') as db:
-        print(f"shelve size  : {len(db)}")
-    print(f"csv num lines: {lineno}")
-    print("If the shelve size and number of csv lines didn't print, something went wrong!")
-    print("If they did, verify yourself that they are as expected.")
-    print("If there were no other prints, then each entry in the shelve appears correctly in the csv, and csv term is correctly mapped onto in the shelve.")
+    print(f"term_to_seek size: {len(TERM_TO_SEEK)}")
+    print(f"csv num lines    : {lineno}")
+    print("Check that term_to_seek size and csv lineno printed and they are as expected.")
+    print("If there were no other prints, then each entry in the json appears correctly in the csv, and csv term is correctly mapped onto in the json.")
 
 
 def merge_csv_files(input_files):
