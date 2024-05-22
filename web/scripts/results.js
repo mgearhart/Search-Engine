@@ -14,18 +14,23 @@ async function search(query) {
     const response = await fetch(search_url);
     const urls = await response.json();
     console.log(urls);
-
-    let resulting_urls = document.getElementById("results");
-    for (let i=0; i < urls.length; ++i) {
-        let url_to_append = document.createElement("li");
-        url_to_append.appendChild(document.createTextNode(urls[i]));
-        url_to_append.setAttribute("id", "appended-url");
-        resulting_urls.appendChild(url_to_append);
-    }
-    
+    return urls;
 }
 
 
 let query = getParameterByName("query");
 console.log(query);
-search(query);
+(async () => {
+    let urls = await search(query);
+
+    let resulting_urls = document.getElementById("results");
+    for (let i=0; i < urls.length; ++i) {
+        let url_to_append = document.createElement("li");
+        let link = document.createElement("a");
+        link.href = urls[i];
+        link.appendChild(document.createTextNode(urls[i]));
+        url_to_append.appendChild(link);
+        url_to_append.setAttribute("id", "appended-url");
+        resulting_urls.appendChild(url_to_append);
+    }
+}) ()
