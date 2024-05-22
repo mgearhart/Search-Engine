@@ -88,7 +88,7 @@ def search():
                     indexreader = csv.reader(f, delimiter='(')
                     if term not in term_to_seek:
                         docid_list = [] #TODO TERM DOES NOT APPEAR IN THE INDEX, DIE FOR NOW
-                        continue
+                        break           #TODO TERM DOES NOT APPEAR IN THE INDEX, DIE FOR NOW
                     else:
                         f.seek(term_to_seek[term], 0) #moves pointer to the beginning of term line
                     row = next(indexreader) #gets line
@@ -113,7 +113,7 @@ def search():
             # for id in DOCID_SET:
             #     print(id) #test
 
-            # print("list == set:", set(docid_list) == DOCID_SET)
+        # print("list == set:", set(docid_list) == DOCID_SET)
                 
 
         # print those urls (should we ever return?)
