@@ -173,7 +173,7 @@ def tfidf():
                 
             for docID, tf in value:
                 tfidf = round(idf[key] * tf, 4)
-                print(f"Term: {key}, DocID: {docID}, TF: {tf}, IDF: {idf[key]}, TF-IDF: {tfidf}")
+                #print(f"Term: {key}, DocID: {docID}, TF: {tf}, IDF: {idf[key]}, TF-IDF: {tfidf}")
                 if key not in index:
                     index[key] = []  # Initialize an empty list if key doesn't exist
                 index[key].append((docID, tfidf))
