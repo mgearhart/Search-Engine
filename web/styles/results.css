@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #EEEEEE;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+  color: #484A47;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: #AD6A6C;
+  margin-top: 20px;
+}
+
+.main-search {
+  margin: 20px 0;
+}
+
+.main-search input[type="text"] {
+  width: 600px;
+  padding: 15px;
+  font-size: 1.25rem;
+  border: 1px solid #5C6D70;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.main-search input[type="text"]:focus {
+  border-color: #AD6A6C;
+}
+
+#search-button {
+  padding: 15px 30px;
+  font-size: 1.25rem;
+  background-color: #5C6D70;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background-color 0.3s;
+}
+
+#search-button:hover {
+  background-color: #484A47;
+}
+
+#results {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    margin-top: 20px;
+    text-align: left;
+    padding-left: 100px;
+}
+
+#results li {
+  margin: 20px 0; /* Increased vertical margin between results */
+  text-align: left; /* Align text within list items to the left */
+}
+
+#results li a {
+  text-decoration: none;
+  color: #AD6A6C;
+  font-weight: 600;
+}
+
+#results li a:hover {
+  text-decoration: underline;
+  color: #5C6D70;
+}
+
+#results li p {
+  color: #484A47;
+  margin: 5px 0 0 0;
+}
+
+#result-stats {
+    font-size: 1.5rem;
+    color: #484A47;
+    margin-bottom: 10px;
+  }
+  
+  #pagination-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  #pagination-buttons button {
+    font-size: 1.25rem;
+    padding: 10px 20px;
+    margin: 0 5px;
+    background-color: #5C6D70;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  #pagination-buttons button:hover {
+    background-color: #484A47;
+  }
+  
+  #pagination-buttons span {
+    font-size: 1.5rem;
+    color: #AD6A6C;
+    margin: 0 10px;
+  }
+  
