@@ -85,8 +85,8 @@ def ranked_search():
 
         #display results to user
         #x is a DocScoreInfo; negative sorts by descending
-        for rank, docid_score in enumerate(sorted(doc_score_info, key = lambda x: -x.score)[:100]): #top 100 + extraneous print for now
-            print(f"{rank + 1:<3} {docid_score.score:<20} {id_to_url[docid_score.docid]}")
+        for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
+            print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {id_to_url[docid]}")
             
         print(f'{len(doc_score_info)} URLs considered')
         print(f"Time Elapsed: {time() - t0}\n")
