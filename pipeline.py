@@ -1,6 +1,8 @@
 from indexer import main, idf
 from run_after_index import mapTermToCSVSeek, verify_mapTermToCSVSeek, merge_csv_files, tfidf
 
+from time import time
+
 
 MSG = \
 '''The functions and their generated files:
@@ -24,11 +26,13 @@ Which functions to run? The above files will be overwritten (eg "123456"): '''
 def RUN(fname, f, *args, **kwargs ):
     print(f"{f'BEGIN {fname}':=^100}")
     f(*args, **kwargs)
-    print(f"{f'END {fname}':=^100}")
+    print(f"{f'FINISH {fname} IN {time() - TIME} SECONDS':=^100}")
+    TIME = time()
 
 
 if __name__ == "__main__":
     which = set(input(MSG))
+    TIME = time()
 
     if '1' in which:
         RUN("indexer.main()", main)
