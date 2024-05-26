@@ -15,6 +15,10 @@ def tokenize(content: str) -> list:
     return re.findall(r'\b[A-Za-z0-9]+\b', content.lower())
 
 
+A = 1
+B = 1
+C = 1
+
 class DocScoreInfo:
     '''
     Each considered document gets its own DocScoreInfo.
@@ -30,7 +34,7 @@ class DocScoreInfo:
     def update(self, term: str, tfidf: float, importance: str):
         self.info[term] = (tfidf, importance)
 
-    def computeScore(self, __QUERY_VECTOR__):
+    def computeScore(self, __QUERY_VECTOR__: dict[str, float], pagerank_hits: dict[int, float]):
         '''
         Placeholder for now; we shall see how we want to do this.
         We can do something like:
@@ -41,7 +45,17 @@ class DocScoreInfo:
 
         for tuneable constants A, B, C.
         '''
+
+        #TODO whiteboard says importance manifests here
+        sum_tfidfs = sum(tfidf_importance[0] for tfidf_importance in self.info.values())
+        cosine_similarity = 0
+        pagerank = 0
+        hits = 0
+
         raise NotImplementedError
+    
+        return A * (B * sum_tfidfs + (1 - B) * cosine_similarity) + \
+            (1 - A) * (C * pagerank + (1 - C) * hits)
 
 
 #TODO speedup ideas:
@@ -81,7 +95,7 @@ def ranked_search():
                         doc_score_infos[int(docid)].update(term, float(tfidf), importance[:-1])
 
         for doc_score_info in doc_score_infos:
-            doc_score_info.computeScore(__QUERY_VECTOR__) #TODO
+            doc_score_info.computeScore(__QUERY_VECTOR__, PAGERANK_HITS) #TODO __QUERY_VECTOR__ and pagerank_hits
 
         #display results to user
         #x is a DocScoreInfo; negative sorts by descending
