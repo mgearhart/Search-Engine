@@ -82,7 +82,7 @@ def ranked_search():
         query_vector = "TODO"
 
         # lookup urls for each term
-        with open('final_merged.csv', 'r') as f:
+        with open('databases/final_merged.csv', 'r') as f:
             #maps docid -> DocScoreInfo
             doc_score_infos = defaultdict(DocScoreInfo)
             #TODO should we do set(stemmed_query_words)?

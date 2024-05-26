@@ -118,7 +118,7 @@ def merge_csv_files(input_files):
     lower_bound = 0
     upper_bound = 6  # Start with the first 6 characters
     hashmap = {}
-    output_file = "final_merged.csv"
+    output_file = "databases/final_merged.csv"
     with open(output_file, 'w', newline=''): #this is just to clear the output file before doing anything
         pass
     
@@ -158,14 +158,14 @@ def tfidf():
     '''
     csv.field_size_limit(2147483647)
     
-    with open('idf.json', 'r') as json_file:
+    with open('databases/idf.json', 'r') as json_file:
         idf = json.load(json_file)
     
 
     id_count = 0
 
 
-    with open('final_merged.csv', 'r') as f:
+    with open('databases/final_merged.csv', 'r') as f:
         reader = csv.reader(f, delimiter='|')
         for row in reader:
             key = row[0].strip()
@@ -189,7 +189,7 @@ def tfidf():
     
     
 def offload():
-    with open('final.csv', 'a', newline='\n') as csvfile:  # Open in append mode
+    with open('databases/final.csv', 'a', newline='\n') as csvfile:  # Open in append mode
         indexwriter = csv.writer(csvfile, delimiter='|')
         
         for term in sorted(index):

@@ -118,10 +118,17 @@ def mapIdToUrl(id: int, url: str):
     '''
     id_to_url[str(id)] = url
 
+
 def idf():  ### idf(term) = log( totalNumOfDocs / DocFreq(term))
     for term,df in word_doc_count.items():
         idf_values[term] = log10(55393 / (df))
         #print(f"Term: {term}, DF: {df}, IDF: {idf_values[term]}")
+
+    with open('databases/idf.json', 'w') as json_file: #shoving the idf values in here
+        json.dump(idf_values, json_file)
+    with open('databases/df.json', 'w') as df: #shoving df terms in here for debug, not necessary though
+        json.dump(word_doc_count, df)
+
 
 def main():
     id_count = 0
@@ -177,16 +184,10 @@ def main():
 
                 id_count += 1
 
+    with open("databases/id_to_url.json", "w") as out:
+        json.dump(id_to_url, out, indent=4)
+
 
 if __name__ == "__main__":
     main()
     idf()
-    with open("databases/id_to_url.json", "w") as out:
-        json.dump(id_to_url, out, indent=4)
-    with open('idf.json', 'w') as json_file: #shoving the idf values in here
-        json.dump(idf_values, json_file)
-    with open('df.json', 'w') as df: #shoving df terms in here for debug, not necessary though
-        json.dump(word_doc_count, df)
-    
-    # for words in index: # debug index
-    #     print(words, '-', index[words])

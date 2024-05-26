@@ -79,7 +79,7 @@ def search():
         stemmed_query_words = stemWords(query_words) #stems words in query
 
         # lookup urls for each term
-        with open('final_merged.csv', 'r') as f:
+        with open('databases/final_merged.csv', 'r') as f:
                 docid_list = []
                 # DOCID_SET = set() #debug
                 is_first_term = True
