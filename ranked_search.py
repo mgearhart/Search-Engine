@@ -5,6 +5,7 @@ from indexer import stemWords
 
 from time import time
 from collections import defaultdict
+from math import log10, sqrt
 
 
 def tokenize(content: str) -> list:
@@ -46,10 +47,14 @@ class DocScoreInfo:
         '''
 
         #TODO whiteboard says importance manifests here
-        sum_tfidfs = sum(tfidf_importance[0] for tfidf_importance in self.info.values())
+        self.score = (sum_tfidfs := sum(tfidf_importance[0] for tfidf_importance in self.info.values()))
+
+        return
+
         cosine_similarity = self.cosine_similarity(query_vector)
         pagerank = 0
         hits = 0
+
 
         raise NotImplementedError
     
@@ -68,43 +73,52 @@ def ranked_search():
         ID_TO_URL = json.load(f)
     with open("databases/term_to_seek.json", 'r') as f:
         TERM_TO_SEEK = json.load(f)
+    with open("databases/idf.json", 'r') as f:
+        IDF = json.load(f)
 
     while True:
         # console interface for ranked search
         query = input("Please enter your query: ")
         t0 = time()
-
         # split query / process words
         stemmed_query_words = stemWords(tokenize(query)) #stems words in query
 
-        #TODO query_vector: compute the query as a vector once, then reuse
-        query_vector = "TODO"
+        #compute the query as a vector once, then reuse
+        # {term -> ltc}
+        query_vector = defaultdict(int)
+        for term in stemmed_query_words:
+            query_vector[term] += 1                                                 #raw tf
+        for term in query_vector:
+            query_vector[term] = (1 + log10(query_vector[term])) * IDF.get(term, 0) #tfidf; IDF default 0 is ok because no doc will have it
+        norm = 1 / sqrt(sum(tfidf ** 2 for tfidf in query_vector.values()))
+        for term in query_vector:
+            query_vector[term] = query_vector[term] * norm                          #normalize
 
         # lookup urls for each term
-        with open('databases/final_merged.csv', 'r') as f:
+        with open('databases/final.csv', 'r') as f:
             #maps docid -> DocScoreInfo
             doc_score_infos = defaultdict(DocScoreInfo)
-            #TODO should we do set(stemmed_query_words)?
-            for term in stemmed_query_words:
-                if term in TERM_TO_SEEK: #terms that dont appear anywhere dont do anythings
+            for term in query_vector:
+                if term in TERM_TO_SEEK: #terms that dont appear anywhere dont do anything
                     indexreader = csv.reader(f, delimiter='(')
                     f.seek(TERM_TO_SEEK[term], 0) #moves pointer to the beginning of term line
                     row = next(indexreader) #gets line
 
-                    #TODO no longer using a list, but dicts maintain insertion order
-                    for posting in row:
-                        docid, tfidf, importance = posting.split(', ') #importance ends in a ')'
+                    for posting in row[1:]: #[0] is the term
+                        # docid, tfidf, importance = posting.split(', ') #importance ends in a ')'
+                        posting = posting[:-3] + ", TODO), "
+                        docid, tfidf, importance, _ = posting.split(', ')
                         doc_score_infos[int(docid)].update(term, float(tfidf), importance[:-1])
 
-        for doc_score_info in doc_score_infos:
-            doc_score_info.computeScore(query_vector, PAGERANK_HITS) #TODO query_vector and pagerank_hits
+        for doc_score_info in doc_score_infos.values():
+            doc_score_info.computeScore(query_vector, PAGERANK_HITS := "TODO") #TODO pagerank_hits
 
         #display results to user
         #x is a DocScoreInfo; negative sorts by descending
         for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
-            print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {ID_TO_URL[docid]}")
+            print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {ID_TO_URL[str(docid)]}")
             
-        print(f'{len(doc_score_info)} URLs considered')
+        print(f'{len(doc_score_infos)} URLs considered')
         print(f"Time Elapsed: {time() - t0}\n")
 
 
