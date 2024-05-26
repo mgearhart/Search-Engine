@@ -8,12 +8,12 @@ import csv
 from math import log10
 
 
-index = defaultdict(list)
+INDEX = defaultdict(list)
 DISK_DUMPS = 18465 # the number to reset the index and offload it
 
-id_to_url = {}
-word_doc_count = {}
-idf_values = {}
+ID_TO_URL = {}
+WORD_COUNT_DOC = {}
+IDF_VALUES = {}
 
 
 class Posting():
@@ -89,8 +89,8 @@ def loadTokens(term_freq: dict[str, int], id_count: int, url: str):
     '''
     for term, frequency in term_freq.items():
         #document.setTFIDF(frequency)
-        #index[term].append(document)
-        index[term].append(Posting(id_count, url, frequency))
+        #INDEX[term].append(document)
+        INDEX[term].append(Posting(id_count, url, frequency))
 
         #settng up tf-idf - commented out for now, will look into it later
         #  tot = sum(x for x in term_freq.values())
@@ -108,26 +108,26 @@ def offload(dump_count: int):
         indexwriter = csv.writer(csvfile, delimiter=' ',
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
         
-        for term in sorted(index):
-            indexwriter.writerow([term, index[term]])
+        for term in sorted(INDEX):
+            indexwriter.writerow([term, INDEX[term]])
 
 
 def mapIdToUrl(id: int, url: str):
     '''
     Maps each id to urls using shelve.
     '''
-    id_to_url[str(id)] = url
+    ID_TO_URL[str(id)] = url
 
 
 def idf():  ### idf(term) = log( totalNumOfDocs / DocFreq(term))
-    for term,df in word_doc_count.items():
-        idf_values[term] = log10(55393 / (df))
-        #print(f"Term: {term}, DF: {df}, IDF: {idf_values[term]}")
+    for term,df in WORD_COUNT_DOC.items():
+        IDF_VALUES[term] = log10(55393 / (df))
+        #print(f"Term: {term}, DF: {df}, IDF: {IDF_VALUES[term]}")
 
     with open('databases/idf.json', 'w') as json_file: #shoving the idf values in here
-        json.dump(idf_values, json_file)
+        json.dump(IDF_VALUES, json_file)
     with open('databases/df.json', 'w') as df: #shoving df terms in here for debug, not necessary though
-        json.dump(word_doc_count, df)
+        json.dump(WORD_COUNT_DOC, df)
 
 
 def main():
@@ -161,9 +161,9 @@ def main():
                 
                 unique_words = set(termFreq.keys())
                 for word in unique_words:
-                    if word not in word_doc_count:
-                        word_doc_count[word] = 0
-                    word_doc_count[word] += 1 #This is a dict of unique key -> how many docs it has appeared in, for use in idf
+                    if word not in WORD_COUNT_DOC:
+                        WORD_COUNT_DOC[word] = 0
+                    WORD_COUNT_DOC[word] += 1 #This is a dict of unique key -> how many docs it has appeared in, for use in idf
                         
                 #posting = Posting(id_count, url)
                 loadTokens(termFreq, id_count, url)
@@ -175,17 +175,17 @@ def main():
                 if (id_count != 0 and id_count % DISK_DUMPS == 0):
                     offload(dumps_count)
                     dumps_count += 1
-                    index.clear() # reset the index
+                    INDEX.clear() # reset the index
 
                 # final offload to csv
                 if (id_count == 55392):
                     offload(dumps_count)
-                    index.clear()
+                    INDEX.clear()
 
                 id_count += 1
 
     with open("databases/id_to_url.json", "w") as out:
-        json.dump(id_to_url, out, indent=4)
+        json.dump(ID_TO_URL, out, indent=4)
 
 
 if __name__ == "__main__":

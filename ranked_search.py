@@ -1,4 +1,3 @@
-import shelve
 import csv
 import json
 import re

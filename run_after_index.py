@@ -1,27 +1,9 @@
 import json
-from collections import defaultdict
 from math import log10
-import sys
-import os
 import csv
 import json
 
-index = {}
 
-
-#commented out for now - will look into later
-#can also modify to operate on shelve
-# def TFtoTFIDF(index: defaultdict, tot_pages: int):
-#     '''
-#     Call once after index is built. Multiplies TF by IDF to obtain TF-IDF.
-#     '''
-#     for term, postings in index.values():
-#         idf = log10(tot_pages / len(postings))
-#         for posting in postings:
-#             posting.actualTFIDF *= idf
-
-
-#https://docs.python.org/3/tutorial/inputoutput.html#tut-files
 def mapTermToCSVSeek(csv: str):
     '''
     Call on CSV after index is built. Saves to "databases/term_to_seek.json" {term -> f.seek() position}.
@@ -160,37 +142,16 @@ def tfidf():
     
     with open('databases/idf.json', 'r') as json_file:
         idf = json.load(json_file)
-    
 
-    id_count = 0
-
-
-    with open('databases/final_merged.csv', 'r') as f:
-        reader = csv.reader(f, delimiter='|')
-        for row in reader:
-            key = row[0].strip()
-            value = eval(row[1].strip()) #list of (docID, tf)
-                
-            for docID, tf in value:
-                tfidf = round(idf[key] * tf, 4)
-                #print(f"Term: {key}, DocID: {docID}, TF: {tf}, IDF: {idf[key]}, TF-IDF: {tfidf}")
-                if key not in index:
-                    index[key] = []  # Initialize an empty list if key doesn't exist
-                index[key].append((docID, tfidf))
-                
-            if (id_count != 0 and id_count % 18465 == 0):
-                offload()
-                index.clear() 
-            if (id_count == 55392):
-                offload()
-                index.clear()
-
-            id_count += 1
-    
-    
-def offload():
-    with open('databases/final.csv', 'a', newline='\n') as csvfile:  # Open in append mode
-        indexwriter = csv.writer(csvfile, delimiter='|')
-        
-        for term in sorted(index):
-            indexwriter.writerow([term, index[term]])
+    with open('databases/final_merged.csv', 'r') as old:
+        with open('databases/final.csv', 'a', newline='\n') as new:  # Open in append mode
+            reader = csv.reader(old, delimiter='|')
+            indexwriter = csv.writer(new, delimiter='|')
+            for row in reader:
+                term = row[0].strip()
+                postings = eval(row[1].strip()) #list of (docID, tf)
+                    
+                new_postings = []
+                for docid, tf in postings:
+                    new_postings.append((docid, round(idf[term] * tf, 4))) #compute tf -> tfidf
+                indexwriter.writerow([term, new_postings])
