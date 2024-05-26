@@ -135,8 +135,6 @@ def main():
         for file in sorted(files):  #NOTE angela ran already
             file_path = os.path.join(root, file) #Get absolute path to file so we can open it
 
-            # with open("out.txt", 'a') as f:
-            #     f.write(f"{id_count:<6} {file_path}\n")
             print(f"{id_count:<6} {file_path}")
                 
             with open(file_path, "r") as f: #open file then grab data from json file
