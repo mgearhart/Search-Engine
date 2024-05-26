@@ -32,10 +32,6 @@ class Posting():
     def setTFIDF(self, tfidf: int):
         self.tfidf = tfidf
 
-    # assists with unpickling later
-    # def __reduce__(self):
-    #     return (Posting, (self.docid, self.tfidf, self.fields))
-
 
 def tokenize(content: str) -> list:
     '''
