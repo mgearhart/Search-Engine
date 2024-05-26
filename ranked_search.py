@@ -34,7 +34,7 @@ class DocScoreInfo:
     def update(self, term: str, tfidf: float, importance: str):
         self.info[term] = (tfidf, importance)
 
-    def computeScore(self, __QUERY_VECTOR__: dict[str, float], pagerank_hits: dict[int, float]):
+    def computeScore(self, query_vector: dict[str, float], pagerank_hits: dict[int, float]):
         '''
         Placeholder for now; we shall see how we want to do this.
         We can do something like:
@@ -48,7 +48,7 @@ class DocScoreInfo:
 
         #TODO whiteboard says importance manifests here
         sum_tfidfs = sum(tfidf_importance[0] for tfidf_importance in self.info.values())
-        cosine_similarity = 0
+        cosine_similarity = self.cosine_similarity(query_vector)
         pagerank = 0
         hits = 0
 
@@ -56,6 +56,9 @@ class DocScoreInfo:
     
         return A * (B * sum_tfidfs + (1 - B) * cosine_similarity) + \
             (1 - A) * (C * pagerank + (1 - C) * hits)
+    
+    def cosine_similarity(self, query_vector: dict[str, float]) -> float:
+        raise NotImplementedError
 
 
 #TODO speedup ideas:
@@ -63,9 +66,9 @@ class DocScoreInfo:
 #  selection algorithm
 def ranked_search():
     with open("databases/id_to_url.json", 'r') as f:
-        id_to_url = json.load(f)
+        ID_TO_URL = json.load(f)
     with open("databases/term_to_seek.json", 'r') as f:
-        term_to_seek = json.load(f)
+        TERM_TO_SEEK = json.load(f)
 
     while True:
         # console interface for ranked search
@@ -75,8 +78,8 @@ def ranked_search():
         # split query / process words
         stemmed_query_words = stemWords(tokenize(query)) #stems words in query
 
-        #TODO __QUERY_VECTOR__: compute the query as a vector once, then reuse
-        __QUERY_VECTOR__ = "TODO"
+        #TODO query_vector: compute the query as a vector once, then reuse
+        query_vector = "TODO"
 
         # lookup urls for each term
         with open('final_merged.csv', 'r') as f:
@@ -84,9 +87,9 @@ def ranked_search():
             doc_score_infos = defaultdict(DocScoreInfo)
             #TODO should we do set(stemmed_query_words)?
             for term in stemmed_query_words:
-                if term in term_to_seek: #terms that dont appear anywhere dont do anythings
+                if term in TERM_TO_SEEK: #terms that dont appear anywhere dont do anythings
                     indexreader = csv.reader(f, delimiter='(')
-                    f.seek(term_to_seek[term], 0) #moves pointer to the beginning of term line
+                    f.seek(TERM_TO_SEEK[term], 0) #moves pointer to the beginning of term line
                     row = next(indexreader) #gets line
 
                     #TODO no longer using a list, but dicts maintain insertion order
@@ -95,12 +98,12 @@ def ranked_search():
                         doc_score_infos[int(docid)].update(term, float(tfidf), importance[:-1])
 
         for doc_score_info in doc_score_infos:
-            doc_score_info.computeScore(__QUERY_VECTOR__, PAGERANK_HITS) #TODO __QUERY_VECTOR__ and pagerank_hits
+            doc_score_info.computeScore(query_vector, PAGERANK_HITS) #TODO query_vector and pagerank_hits
 
         #display results to user
         #x is a DocScoreInfo; negative sorts by descending
         for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
-            print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {id_to_url[docid]}")
+            print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {ID_TO_URL[docid]}")
             
         print(f'{len(doc_score_info)} URLs considered')
         print(f"Time Elapsed: {time() - t0}\n")
