@@ -45,4 +45,4 @@ if __name__ == "__main__":
     if '5' in which:
         RUN("run_after_index.mapTermToCSVSeek()", mapTermToCSVSeek, "databases/final.csv")
     if '6' in which:
-        RUN("run_after_index.verify_mapTermToCSVSeek()", mapTermToCSVSeek, "databases/final.csv", "databases/term_to_seek.json")
+        RUN("run_after_index.verify_mapTermToCSVSeek()", verify_mapTermToCSVSeek, "databases/final.csv", "databases/term_to_seek.json")
