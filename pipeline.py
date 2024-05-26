@@ -26,7 +26,7 @@ Which functions to run? The above files will be overwritten (eg "123456"): '''
 def RUN(fname, f, *args, **kwargs ):
     global TIME
     print(f"{f'BEGIN {fname}':=^100}")
-    #f(*args, **kwargs)
+    f(*args, **kwargs)
     print(f"{f'FINISH {fname} IN {time() - TIME} SECONDS':=^100}")
     TIME = time()
 
