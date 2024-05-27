@@ -90,7 +90,8 @@ def ranked_search():
             query_vector[term] += 1                                                 #raw tf
         for term in query_vector:
             query_vector[term] = (1 + log10(query_vector[term])) * IDF.get(term, 0) #tfidf; IDF default 0 is ok because no doc will have it
-        norm = 1 / sqrt(sum(tfidf ** 2 for tfidf in query_vector.values()))
+        norm = sqrt(sum(tfidf ** 2 for tfidf in query_vector.values()))
+        norm = (0 if norm == 0 else 1 / norm)                                       #then query has no indexed terms, and the rest is a no-op anyway. could just skip immediately
         for term in query_vector:
             query_vector[term] = query_vector[term] * norm                          #normalize
 
