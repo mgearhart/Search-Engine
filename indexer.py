@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from nltk.stem import PorterStemmer
 import csv
 from math import log10
+from binascii import crc32
 
 
 INDEX = defaultdict(list)
@@ -14,6 +15,9 @@ DISK_DUMPS = 18465 # the number to reset the index and offload it
 ID_TO_URL = {}
 WORD_COUNT_DOC = {}
 IDF_VALUES = {}
+
+N_NON_DUPLICATE = 0 #will be N in idf computation: 55393 - duplicates
+CRC = defaultdict(list)
 
 
 class Posting():
@@ -33,10 +37,11 @@ class Posting():
         self.tfidf = tfidf
 
 
-def tokenize(content: str) -> list:
+def tokenize(docid: int, content: str) -> list:
     '''
     Takes html string, parses it and tokenizes it
     important words will contain words from headers,bold text, and title
+    Returns (None, None) if duplicate detected.
     '''
     soup = BeautifulSoup(content, "html.parser")
     important_text = [] #contains list of strings from important soup tags
@@ -48,10 +53,15 @@ def tokenize(content: str) -> list:
        
     text = soup.get_text(separator = " ", strip = True) #This contains all text including important words, should we only have non-important text in this or does it matter?
     text = text.encode("utf-8", errors="replace").decode("utf-8")
+
+    # duplicate detection
+    if crcDuplicate(docid, text) or simhashDuplicate(docid, text):
+        return (None, None) #then skip to next document in main()
+    global N_NON_DUPLICATE
+    N_NON_DUPLICATE += 1
    
     important_words = re.findall(r'\b[A-Za-z0-9]+\b', ' '.join(important_text).lower())
     words = re.findall(r'\b[A-Za-z0-9]+\b', text.lower())
-
 
     return words,important_words
 
@@ -88,14 +98,7 @@ def loadTokens(term_freq: dict[str, int], id_count: int, url: str):
     Loads the tokens pulled from a page into our index
     '''
     for term, frequency in term_freq.items():
-        #document.setTFIDF(frequency)
-        #INDEX[term].append(document)
         INDEX[term].append(Posting(id_count, url, frequency))
-
-        #settng up tf-idf - commented out for now, will look into it later
-        #  tot = sum(x for x in term_freq.values())
-        #  document.actualTFIDF = 1 + log10(frequency / tot)
-        #  document.actualTFIDF = frequency / tot
 
 
 # csv db implementation
@@ -121,13 +124,32 @@ def mapIdToUrl(id: int, url: str):
 
 def idf():  ### idf(term) = log( totalNumOfDocs / DocFreq(term))
     for term,df in WORD_COUNT_DOC.items():
-        IDF_VALUES[term] = log10(55393 / (df))
+        # IDF_VALUES[term] = log10(55393 / (df))
+        IDF_VALUES[term] = log10(N_NON_DUPLICATE / (df))
         #print(f"Term: {term}, DF: {df}, IDF: {IDF_VALUES[term]}")
 
     with open('databases/idf.json', 'w') as json_file: #shoving the idf values in here
         json.dump(IDF_VALUES, json_file)
     with open('databases/df.json', 'w') as df: #shoving df terms in here for debug, not necessary though
         json.dump(WORD_COUNT_DOC, df)
+
+
+#TODO you can output duplicates in search, ie "5 very similar results..."
+def crcDuplicate(docid: int, text: str) -> bool:
+    '''
+    Partitions documents by crc hash into the dict CRC.
+    Returns whether CRC duplicate is found. Prints if so.
+    '''
+    match = (crc := crc32(text.encode(encoding="utf-8"))) in CRC
+    CRC[crc].append(docid)
+    if match:
+        print(f"{docid:<6} CRC found exact duplicate. Will not index.")
+        return True
+    return False
+
+def simhashDuplicate(docid: int, text: str) -> bool:
+    #TODO
+    pass
 
 
 def main():
@@ -138,8 +160,8 @@ def main():
     dumps_count = 1
     
     for root, dirs, files in os.walk(dev_path): #loop through DEV directory and subdirectories
-        dirs.sort()                 #NOTE angela ran already
-        for file in sorted(files):  #NOTE angela ran already
+        dirs.sort()
+        for file in sorted(files):
             file_path = os.path.join(root, file) #Get absolute path to file so we can open it
 
             print(f"{id_count:<6} {file_path}")
@@ -151,22 +173,23 @@ def main():
                 content = data.get("content", "")
                 # encoding = data.get("encoding", "")
                 
-                words,important_words = tokenize(content) #returns lists of words
-                stemmed_words = stemWords(words) #stems the non important words
-                # stemmed_important_words = stemWords(important_words) #stems important words
-                
-                # using var words here to get term freq, maybe we want to use both words and important
-                # words, and count important words twice to increase their pull in the index?
-                termFreq = termFrequency(stemmed_words) #This is a dict of {word->Freq} for this doc
-                
-                unique_words = set(termFreq.keys())
-                for word in unique_words:
-                    if word not in WORD_COUNT_DOC:
-                        WORD_COUNT_DOC[word] = 0
-                    WORD_COUNT_DOC[word] += 1 #This is a dict of unique key -> how many docs it has appeared in, for use in idf
-                        
-                #posting = Posting(id_count, url)
-                loadTokens(termFreq, id_count, url)
+                words,important_words = tokenize(id_count, content) #returns lists of words
+                #if duplicate detection returns (None, None), skip these parts but the rest is still important
+                if not (words is None or important_words is None):
+                    stemmed_words = stemWords(words) #stems the non important words
+                    # stemmed_important_words = stemWords(important_words) #stems important words
+                    
+                    # using var words here to get term freq, maybe we want to use both words and important
+                    # words, and count important words twice to increase their pull in the index?
+                    termFreq = termFrequency(stemmed_words) #This is a dict of {word->Freq} for this doc
+                    
+                    for word in termFreq:
+                        if word not in WORD_COUNT_DOC:
+                            WORD_COUNT_DOC[word] = 0
+                        WORD_COUNT_DOC[word] += 1 #This is a dict of unique key -> how many docs it has appeared in, for use in idf
+                            
+                    #posting = Posting(id_count, url)
+                    loadTokens(termFreq, id_count, url)
 
                 # map each id to url using shelve for easier search later on
                 mapIdToUrl(id_count, url)
@@ -186,6 +209,8 @@ def main():
 
     with open("databases/id_to_url.json", "w") as out:
         json.dump(ID_TO_URL, out, indent=4)
+    with open("databases/crc.json", 'w') as out:
+        json.dump(CRC, out, indent=4)
 
 
 if __name__ == "__main__":
