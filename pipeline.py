@@ -20,7 +20,7 @@ MSG = \
        - databases/term_to_seek.json
     6) run_after_index.verify_mapTermToCSVSeek()
 
-Which functions to run? The above files will be overwritten (eg "123456"): '''
+Which functions to run? Some files will be appended, NOT overwritten (eg "123456"): '''
 
 
 def RUN(fname, f, *args, **kwargs ):
