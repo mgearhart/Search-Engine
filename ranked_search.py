@@ -15,10 +15,9 @@ def tokenize(content: str) -> list:
     return re.findall(r'\b[A-Za-z0-9]+\b', content.lower())
 
 
-A = 1
-B = 1
-C = 1
-
+TFIDF_STATIC = 1
+SUM_COSINE = 1
+PAGERANK_HITS = 1
 class DocScoreInfo:
     '''
     Each considered document gets its own DocScoreInfo.
@@ -30,51 +29,75 @@ class DocScoreInfo:
     def __init__(self):
         self.info = dict()
         self.score = None
+        
 
     def update(self, term: str, tfidf: float, importance: str):
         self.info[term] = (tfidf, importance)
 
-    def computeScore(self, query_vector: dict[str, float], pagerank_hits: dict[int, float]):
+
+    def computeScore(self, docid: int, query_vector: dict[str, float]):
         '''
         Placeholder for now; we shall see how we want to do this.
         We can do something like:
 
-        A * [B * SUM_TFIDF_IMPORTANT_WORDS + (1 - B) * COSINE_SIMILARITY]
+        TFIDF_STATIC * [SUM_COSINE * SUM_TFIDF_IMPORTANT_WORDS + (1 - SUM_COSINE) * COSINE_SIMILARITY]
         +
-        (1 - A) * [C * PAGERANK + (1 - C) * HITS]
+        (1 - TFIDF_STATIC) * [PAGERANK_HITS * PAGERANK + (1 - PAGERANK_HITS) * HITS]
 
-        for tuneable constants A, B, C.
+        for tuneable constants TFIDF_STATIC, SUM_COSINE, PAGERANK_HITS.
         '''
+        global PAGERANK
+        global HITS
 
-        #TODO whiteboard says importance manifests here
-        self.score = (sum_tfidfs := sum(tfidf_importance[0] for tfidf_importance in self.info.values()))
-
-        return
-
-        cosine_similarity = self.cosine_similarity(query_vector)
-        pagerank = 0
-        hits = 0
-
-
-        raise NotImplementedError
+        #TODO whiteboard says word importance manifests in sum of tfidf's
+        important_words_weighted_sum_tfidf  = self.importantWordsWeightedSumTFIDF
+        cosine_similarity                   = self.cosineSimilarity(query_vector)
+        pagerank                            = self.pagerank(docid)
+        hits                                = self.hits(docid)
     
-        return A * (B * sum_tfidfs + (1 - B) * cosine_similarity) + \
-            (1 - A) * (C * pagerank + (1 - C) * hits)
+        self.score = TFIDF_STATIC * (SUM_COSINE * important_words_weighted_sum_tfidf + (1 - SUM_COSINE) * cosine_similarity) + \
+            (1 - TFIDF_STATIC) * (PAGERANK_HITS * pagerank + (1 - PAGERANK_HITS) * hits)
+        
+
+    def importantWordsWeightedSumTFIDF(self) -> float:
+        sum(tfidf_importance[0] for tfidf_importance in self.info.values())
     
-    def cosine_similarity(self, query_vector: dict[str, float]) -> float:
-        raise NotImplementedError
+    def cosineSimilarity(self, query_vector: dict[str, float]) -> float:
+        NotImplemented
+        return 0.0
+    
+    def pagerank(self, docid: int) -> float:
+        return PAGERANK[docid]
+    
+    def hits(self, docid: int) -> float:
+        return HITS[docid]
+
+
+#TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+"databases - Copy"
+"databases - Copy"
+"databases - Copy"
+"databases - Copy"
+"databases - Copy"
+"databases - Copy"
+"databases - Copy"
+"databases - Copy"
 
 
 #TODO speedup ideas:
 #  heap
 #  selection algorithm
 def ranked_search():
-    with open("databases/id_to_url.json", 'r') as f:
+    with open("databases - Copy/id_to_url.json", 'r') as f:
         ID_TO_URL = json.load(f)
-    with open("databases/term_to_seek.json", 'r') as f:
+    with open("databases - Copy/term_to_seek.json", 'r') as f:
         TERM_TO_SEEK = json.load(f)
-    with open("databases/idf.json", 'r') as f:
+    with open("databases - Copy/idf.json", 'r') as f:
         IDF = json.load(f)
+    with open("databases - Copy/pagerank.json", 'w') as f:
+        PAGERANK = json.load(f)
+    with open("databases - Copy/hits.json", 'w') as f:
+        HITS = json.load(f)
 
     while True:
         # console interface for ranked search
@@ -96,7 +119,7 @@ def ranked_search():
             query_vector[term] = query_vector[term] * norm                          #normalize
 
         # lookup urls for each term
-        with open('databases/final.csv', 'r') as f:
+        with open('databases - Copy/final.csv', 'r') as f:
             #maps docid -> DocScoreInfo
             doc_score_infos = defaultdict(DocScoreInfo)
             for term in query_vector:
@@ -111,8 +134,8 @@ def ranked_search():
                         docid, tfidf, importance, _ = posting.split(', ')
                         doc_score_infos[int(docid)].update(term, float(tfidf), importance[:-1])
 
-        for doc_score_info in doc_score_infos.values():
-            doc_score_info.computeScore(query_vector, PAGERANK_HITS := "TODO") #TODO pagerank_hits
+        for docid, doc_score_info in doc_score_infos.items():
+            doc_score_info.computeScore(docid, query_vector)
 
         #display results to user
         #x is a DocScoreInfo; negative sorts by descending
