@@ -147,7 +147,7 @@ def verify_computePagerank():
                     enumerate(sorted(range(N_55393), key = lambda i: 0 if PAGERANK[i] is None else -PAGERANK[i])[:500])))
 
 
-if __name__ == "__main__":
-    # makeGraph()
-    # computePagerank()
-    verify_computePagerank()
+# if __name__ == "__main__":
+#     makeGraph()
+#     computePagerank()
+#     verify_computePagerank()
