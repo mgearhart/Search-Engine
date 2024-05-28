@@ -15,6 +15,7 @@ DISK_DUMPS = 18465 # the number to reset the index and offload it
 ID_TO_URL = {}
 WORD_COUNT_DOC = {}
 IDF_VALUES = {}
+IMPORTANT_WORDS = {}
 
 N_NON_DUPLICATE = 0 #will be N in idf computation: 55393 - duplicates
 CRC = defaultdict(list)
@@ -37,33 +38,53 @@ class Posting():
         self.tfidf = tfidf
 
 
-def tokenize(docid: int, content: str) -> list:
+def tokenize(docid: int, content: str, id_count: int) -> list:
     '''
     Takes html string, parses it and tokenizes it
     important words will contain words from headers,bold text, and title
     Returns (None, None) if duplicate detected.
     '''
     soup = BeautifulSoup(content, "html.parser")
-    important_text = [] #contains list of strings from important soup tags
+    #important_text = [] #contains list of strings from important soup tags
     text = "" #contains one string of all text
-   
-    for tag in soup.find_all(["title", "b", "strong", "h1", "h2", "h3"]):
-        encoded_text = tag.get_text() + " "
-        important_text.append(encoded_text.encode("utf-8", errors="replace").decode("utf-8"))
-       
+    
     text = soup.get_text(separator = " ", strip = True) #This contains all text including important words, should we only have non-important text in this or does it matter?
     text = text.encode("utf-8", errors="replace").decode("utf-8")
 
     # duplicate detection
     if crcDuplicate(docid, text) or simhashDuplicate(docid, text):
-        return (None, None) #then skip to next document in main()
+        return (None) #then skip to next document in main()
     global N_NON_DUPLICATE
     N_NON_DUPLICATE += 1
+     
+    title_tags = soup.find_all("title")
+    update_important_word_index(title_tags, "title", docid)
+
+    bold_tags = soup.find_all(["b", "strong"])
+    update_important_word_index(bold_tags, "bold", docid)
+
+    header_tags = soup.find_all(["h1", "h2", "h3"])
+    update_important_word_index(header_tags, "header", docid)
+
    
-    important_words = re.findall(r'\b[A-Za-z0-9]+\b', ' '.join(important_text).lower())
+    #important_words = re.findall(r'\b[A-Za-z0-9]+\b', ' '.join(important_text).lower())
     words = re.findall(r'\b[A-Za-z0-9]+\b', text.lower())
 
-    return words,important_words
+    return words
+
+def update_important_word_index(tags, section, docid):
+    '''
+    Helper function for important words
+    '''
+    text = [tag.get_text().encode("utf-8", errors="replace").decode("utf-8") for tag in tags]
+    words = stemWords([word.lower() for text in text for word in re.findall(r'\b[A-Za-z0-9]+\b', text)])
+
+    for word in words:
+        if word not in IMPORTANT_WORDS:
+            IMPORTANT_WORDS[word] = {"title": [], "header": [], "bold": []}
+        # Ensure each docid is only added once per word-section pair
+        if docid not in IMPORTANT_WORDS[word][section]:
+            IMPORTANT_WORDS[word][section].append(docid)
 
 
 def stemWords(words: list) -> list:
@@ -173,14 +194,11 @@ def main():
                 content = data.get("content", "")
                 # encoding = data.get("encoding", "")
                 
-                words,important_words = tokenize(id_count, content) #returns lists of words
+                words = tokenize(id_count, content, id_count) #returns lists of words
                 #if duplicate detection returns (None, None), skip these parts but the rest is still important
-                if not (words is None or important_words is None):
+                if not (words is None):
                     stemmed_words = stemWords(words) #stems the non important words
-                    # stemmed_important_words = stemWords(important_words) #stems important words
-                    
-                    # using var words here to get term freq, maybe we want to use both words and important
-                    # words, and count important words twice to increase their pull in the index?
+
                     termFreq = termFrequency(stemmed_words) #This is a dict of {word->Freq} for this doc
                     
                     for word in termFreq:
@@ -200,6 +218,7 @@ def main():
                     dumps_count += 1
                     INDEX.clear() # reset the index
 
+                    
                 # final offload to csv
                 if (id_count == 55392):
                     offload(dumps_count)
@@ -211,6 +230,9 @@ def main():
         json.dump(ID_TO_URL, out, indent=4)
     with open("databases/crc.json", 'w') as out:
         json.dump(CRC, out, indent=4)
+    with open("databases/important_words.json", "w") as out:
+        json.dump(IMPORTANT_WORDS, out, indent=4)
+
 
 
 if __name__ == "__main__":
