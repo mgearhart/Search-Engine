@@ -169,9 +169,9 @@ def tfidf():
                     if term in important_words:
                         if docid in important_words[term].get('title', []):
                             tfidf *= TITLE_MULTIPLIER
-                        elif docid in important_words[term].get('bold', []):   
-                            tfidf *= BOLD_MULTIPLIER
                         elif docid in important_words[term].get('header', []):
                             tfidf *= HEADER_MULTIPLIER
+                        elif docid in important_words[term].get('bold', []):   
+                            tfidf *= BOLD_MULTIPLIER
                     new_postings.append((docid, tfidf)) #compute tf -> tfidf    
                 indexwriter.writerow([term, new_postings])

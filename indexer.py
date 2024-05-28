@@ -42,7 +42,7 @@ def tokenize(docid: int, content: str) -> list:
     '''
     Takes html string, parses it and tokenizes it
     important words will contain words from headers,bold text, and title
-    Returns (None, None) if duplicate detected.
+    Returns None if duplicate detected.
     '''
     soup = BeautifulSoup(content, "html.parser")
     #important_text = [] #contains list of strings from important soup tags
@@ -53,7 +53,7 @@ def tokenize(docid: int, content: str) -> list:
 
     # duplicate detection
     if crcDuplicate(docid, text) or simhashDuplicate(docid, text):
-        return (None) #then skip to next document in main()
+        return None #then skip to next document in main()
     global N_NON_DUPLICATE
     N_NON_DUPLICATE += 1
      
@@ -195,8 +195,8 @@ def main():
                 # encoding = data.get("encoding", "")
                 
                 words = tokenize(id_count, content) #returns lists of words
-                #if duplicate detection returns (None, None), skip these parts but the rest is still important
-                if not (words is None):
+                #if duplicate detection returns None, skip these parts but the rest is still important
+                if words is not None:
                     stemmed_words = stemWords(words) #stems the non important words
 
                     termFreq = termFrequency(stemmed_words) #This is a dict of {word->Freq} for this doc
