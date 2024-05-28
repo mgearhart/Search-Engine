@@ -11,6 +11,7 @@ MSG = \
        - databases/index[123].csv
        - databases/id_to_url.json
        - databases/crc.json
+       - databases/important_words.json
     2) indexer.idf()
        - databases/idf.json
        - databases/df.json

@@ -38,7 +38,7 @@ class Posting():
         self.tfidf = tfidf
 
 
-def tokenize(docid: int, content: str, id_count: int) -> list:
+def tokenize(docid: int, content: str) -> list:
     '''
     Takes html string, parses it and tokenizes it
     important words will contain words from headers,bold text, and title
@@ -194,7 +194,7 @@ def main():
                 content = data.get("content", "")
                 # encoding = data.get("encoding", "")
                 
-                words = tokenize(id_count, content, id_count) #returns lists of words
+                words = tokenize(id_count, content) #returns lists of words
                 #if duplicate detection returns (None, None), skip these parts but the rest is still important
                 if not (words is None):
                     stemmed_words = stemWords(words) #stems the non important words
@@ -232,7 +232,6 @@ def main():
         json.dump(CRC, out, indent=4)
     with open("databases/important_words.json", "w") as out:
         json.dump(IMPORTANT_WORDS, out, indent=4)
-
 
 
 if __name__ == "__main__":

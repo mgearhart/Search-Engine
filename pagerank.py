@@ -7,7 +7,6 @@ from collections import defaultdict
 
 
 N_55393 = 55393
-GRAPH = [set() for _ in range(N_55393)]
 RAND = 0.15
 ONE_MINUS_RAND = 1 - RAND
 ITERATIONS = 250
@@ -43,6 +42,7 @@ def normalizeURL(url: str) -> str:
 
 
 def makeGraph():
+    GRAPH = [set() for _ in range(N_55393)]
     with open ("databases/id_to_url.json", 'r') as f:
         ID_TO_URL = json.load(f)
     with open ("databases/crc.json", 'r') as f:
@@ -52,7 +52,6 @@ def makeGraph():
     del ID_TO_URL
     del CRC
 
-    global GRAPH
     docid = 0
     for root, dirs, files in os.walk(os.path.abspath("DEV")):
         dirs.sort()
@@ -81,6 +80,8 @@ def makeGraph():
         json.dump(GRAPH, f, indent=4)
 
 def computePagerank():
+    with open("databases/graph.json", 'r') as f:
+        GRAPH = json.load(f)
     N = sum(x is not None for x in GRAPH)
     old = [None if GRAPH[i] is None else 1 / N for i in range(N_55393)]
     for its in range(ITERATIONS):

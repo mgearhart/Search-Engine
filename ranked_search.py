@@ -15,6 +15,7 @@ def tokenize(content: str) -> list:
     return re.findall(r'\b[A-Za-z0-9]+\b', content.lower())
 
 
+#TODO TODO TODO need to tune these
 TFIDF_STATIC = 1
 SUM_COSINE = 1
 PAGERANK_HITS = 1
@@ -49,8 +50,7 @@ class DocScoreInfo:
         global PAGERANK
         global HITS
 
-        #TODO whiteboard says word importance manifests in sum of tfidf's
-        important_words_weighted_sum_tfidf  = self.importantWordsWeightedSumTFIDF
+        important_words_weighted_sum_tfidf  = self.importantWordsWeightedSumTFIDF()
         cosine_similarity                   = self.cosineSimilarity(query_vector)
         pagerank                            = self.pagerank(docid)
         hits                                = self.hits(docid)
@@ -60,7 +60,7 @@ class DocScoreInfo:
         
 
     def importantWordsWeightedSumTFIDF(self) -> float:
-        sum(tfidf_importance[0] for tfidf_importance in self.info.values())
+        return sum(tfidf_importance[0] for tfidf_importance in self.info.values())
     
     def cosineSimilarity(self, query_vector: dict[str, float]) -> float:
         NotImplemented
@@ -70,34 +70,26 @@ class DocScoreInfo:
         return PAGERANK[docid]
     
     def hits(self, docid: int) -> float:
+        NotImplemented
+        return 0.0
         return HITS[docid]
-
-
-#TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-"databases - Copy"
-"databases - Copy"
-"databases - Copy"
-"databases - Copy"
-"databases - Copy"
-"databases - Copy"
-"databases - Copy"
-"databases - Copy"
 
 
 #TODO speedup ideas:
 #  heap
 #  selection algorithm
 def ranked_search():
-    with open("databases - Copy/id_to_url.json", 'r') as f:
-        ID_TO_URL = json.load(f)
-    with open("databases - Copy/term_to_seek.json", 'r') as f:
-        TERM_TO_SEEK = json.load(f)
-    with open("databases - Copy/idf.json", 'r') as f:
-        IDF = json.load(f)
-    with open("databases - Copy/pagerank.json", 'w') as f:
-        PAGERANK = json.load(f)
-    with open("databases - Copy/hits.json", 'w') as f:
-        HITS = json.load(f)
+    # with open("databases/id_to_url.json", 'r') as f:
+    #     ID_TO_URL = json.load(f)
+    # with open("databases/term_to_seek.json", 'r') as f:
+    #     TERM_TO_SEEK = json.load(f)
+    # with open("databases/idf.json", 'r') as f:
+    #     IDF = json.load(f)
+    # with open("databases/pagerank.json", 'r') as f:
+    #     PAGERANK = json.load(f)
+    # # with open("databases/hits.json", 'r') as f:
+    # #     HITS = json.load(f)
+    # HITS = list()
 
     while True:
         # console interface for ranked search
@@ -119,7 +111,7 @@ def ranked_search():
             query_vector[term] = query_vector[term] * norm                          #normalize
 
         # lookup urls for each term
-        with open('databases - Copy/final.csv', 'r') as f:
+        with open('databases/final.csv', 'r') as f:
             #maps docid -> DocScoreInfo
             doc_score_infos = defaultdict(DocScoreInfo)
             for term in query_vector:
@@ -147,4 +139,15 @@ def ranked_search():
 
 
 if __name__ == "__main__":
+    with open("databases/id_to_url.json", 'r') as f:
+        ID_TO_URL = json.load(f)
+    with open("databases/term_to_seek.json", 'r') as f:
+        TERM_TO_SEEK = json.load(f)
+    with open("databases/idf.json", 'r') as f:
+        IDF = json.load(f)
+    with open("databases/pagerank.json", 'r') as f:
+        PAGERANK = json.load(f)
+    # with open("databases/hits.json", 'r') as f:
+    #     HITS = json.load(f)
+    HITS = list()
     ranked_search()
