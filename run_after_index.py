@@ -137,11 +137,23 @@ def tfidf():
     Function to calculate tfidf for each doc in the posting of each word.
     Creates a new csv file with tfidf in place of tf for each doc in each posting.
     CALL THIS AFTER MERGE, THE FINAL CSV WILL BE 'final.csv' not 'final_merged.csv'
+
+    Also multiplies in the important word weights if they show up for that word and doc
+    Feel free to change the weights
     '''
     csv.field_size_limit(2147483647)
     
+    TITLE_MULTIPLIER = 1.5
+    BOLD_MULTIPLIER = 1.15
+    HEADER_MULTIPLIER = 1.25
+
+    
     with open('databases/idf.json', 'r') as json_file:
         idf = json.load(json_file)
+        
+    important_words = {}
+    with open('databases/important_words.json', 'r') as json_file:
+        important_words = json.load(json_file)
 
     with open('databases/final_merged.csv', 'r') as old:
         with open('databases/final.csv', 'a', newline='\n') as new:  # Open in append mode
@@ -153,5 +165,13 @@ def tfidf():
                     
                 new_postings = []
                 for docid, tf in postings:
-                    new_postings.append((docid, round(idf[term] * tf, 4))) #compute tf -> tfidf
+                    tfidf = round(idf[term] * tf, 4)
+                    if term in important_words:
+                        if docid in important_words[term].get('title', []):
+                            tfidf *= TITLE_MULTIPLIER
+                        elif docid in important_words[term].get('bold', []):   
+                            tfidf *= BOLD_MULTIPLIER
+                        elif docid in important_words[term].get('header', []):
+                            tfidf *= HEADER_MULTIPLIER
+                    new_postings.append((docid, tfidf)) #compute tf -> tfidf    
                 indexwriter.writerow([term, new_postings])
