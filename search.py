@@ -103,7 +103,7 @@ def webSearch(query: str):
     # get url for each id
     urls = []
     for id in docid_list:
-        urls.append(id_to_url[str(id)])
+        urls.append((str(id), id_to_url[str(id)]))
             
     print(f'\n{len(docid_list)} urls found')
     print("Time Elapsed:", time() - t0)

@@ -55,12 +55,12 @@ h1 {
 }
 
 #results {
-    list-style: none;
-    padding: 0;
-    width: 100%;
-    margin-top: 20px;
-    text-align: left;
-    padding-left: 100px;
+  list-style: none;
+  padding: 0;
+  width: 100%;
+  margin-top: 20px;
+  text-align: left;
+  padding-left: 100px;
 }
 
 #results li {
@@ -72,6 +72,7 @@ h1 {
   text-decoration: none;
   color: #AD6A6C;
   font-weight: 600;
+  font-size: 1.1rem; /* Slightly larger font for links */
 }
 
 #results li a:hover {
@@ -82,39 +83,42 @@ h1 {
 #results li p {
   color: #484A47;
   margin: 5px 0 0 0;
+  font-size: 0.95rem; /* Slightly smaller font for summaries */
+  line-height: 1.5; /* Better line spacing for readability */
+  max-width: 600px; /* Limit width for better readability */
+  padding-left: 20px; /* Indent summaries */
 }
 
 #result-stats {
-    font-size: 1.5rem;
-    color: #484A47;
-    margin-bottom: 10px;
-  }
-  
-  #pagination-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  #pagination-buttons button {
-    font-size: 1.25rem;
-    padding: 10px 20px;
-    margin: 0 5px;
-    background-color: #5C6D70;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  #pagination-buttons button:hover {
-    background-color: #484A47;
-  }
-  
-  #pagination-buttons span {
-    font-size: 1.5rem;
-    color: #AD6A6C;
-    margin: 0 10px;
-  }
-  
+  font-size: 1.5rem;
+  color: #484A47;
+  margin-bottom: 10px;
+}
+
+#pagination-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#pagination-buttons button {
+  font-size: 1.25rem;
+  padding: 10px 20px;
+  margin: 0 5px;
+  background-color: #5C6D70;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#pagination-buttons button:hover {
+  background-color: #484A47;
+}
+
+#pagination-buttons span {
+  font-size: 1.5rem;
+  color: #AD6A6C;
+  margin: 0 10px;
+}
