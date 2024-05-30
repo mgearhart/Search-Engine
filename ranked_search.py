@@ -68,7 +68,8 @@ class DocScoreInfo:
         document = [] # TODO implement
 
         cos_similarity = dot(extracted_query_vector, document) / (norm(extracted_query_vector) * norm(document))
-        return cos_similarity
+        # return cos_similarity
+        return 0.0
     
 
     def pagerank(self, docid: int) -> float:
@@ -145,6 +146,5 @@ if __name__ == "__main__":
         IDF = json.load(f)
     with open("databases/pagerank.json", 'r') as f:
         PAGERANK = json.load(f)
-    # with open("databases/hits.json", 'r') as f:
-    #     HITS = json.load(f)
+
     ranked_search()
