@@ -1,6 +1,5 @@
 import requests
 import json
-import os
 
 url_to_summary = {}
 id_to_url = {}
