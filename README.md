@@ -1,5 +1,5 @@
 # CS121 Search Engine
-## Peter Young, Angela Xiang, David Nguyen, Michael Gearheart
+## Peter Young, Angela Xiang, David Nguyen, Michael Gearhart
 
 ## Running the Search Engine:
 ### 1. Install prerequisites
