@@ -6,6 +6,8 @@ from indexer import stemWords
 from time import time
 from collections import defaultdict
 from math import log10, sqrt
+from numpy import dot
+from numpy.linalg import norm
 
 
 def tokenize(content: str) -> list:
@@ -43,36 +45,34 @@ class DocScoreInfo:
 
         TFIDF_STATIC * [SUM_COSINE * SUM_TFIDF_IMPORTANT_WORDS + (1 - SUM_COSINE) * COSINE_SIMILARITY]
         +
-        (1 - TFIDF_STATIC) * [PAGERANK_HITS * PAGERANK + (1 - PAGERANK_HITS) * HITS]
+        (1 - TFIDF_STATIC) * [PAGERANK_HITS * PAGERANK]
 
         for tuneable constants TFIDF_STATIC, SUM_COSINE, PAGERANK_HITS.
         '''
         global PAGERANK
-        global HITS
 
         important_words_weighted_sum_tfidf  = self.importantWordsWeightedSumTFIDF()
         cosine_similarity                   = self.cosineSimilarity(query_vector)
         pagerank                            = self.pagerank(docid)
-        hits                                = self.hits(docid)
     
         self.score = TFIDF_STATIC * (SUM_COSINE * important_words_weighted_sum_tfidf + (1 - SUM_COSINE) * cosine_similarity) + \
-            (1 - TFIDF_STATIC) * (PAGERANK_HITS * pagerank + (1 - PAGERANK_HITS) * hits)
+            (1 - TFIDF_STATIC) * (PAGERANK_HITS * pagerank)
         
 
     def importantWordsWeightedSumTFIDF(self) -> float:
         return sum(tfidf_importance[0] for tfidf_importance in self.info.values())
     
+
     def cosineSimilarity(self, query_vector: dict[str, float]) -> float:
-        NotImplemented
-        return 0.0
+        extracted_query_vector = query_vector.values()
+        document = [] # TODO implement
+
+        cos_similarity = dot(extracted_query_vector, document) / (norm(extracted_query_vector) * norm(document))
+        return cos_similarity
     
+
     def pagerank(self, docid: int) -> float:
         return PAGERANK[docid]
-    
-    def hits(self, docid: int) -> float:
-        NotImplemented
-        return 0.0
-        return HITS[docid]
 
 
 #TODO speedup ideas:
@@ -87,9 +87,6 @@ def ranked_search():
     #     IDF = json.load(f)
     # with open("databases/pagerank.json", 'r') as f:
     #     PAGERANK = json.load(f)
-    # # with open("databases/hits.json", 'r') as f:
-    # #     HITS = json.load(f)
-    # HITS = list()
 
     while True:
         # console interface for ranked search
@@ -150,5 +147,4 @@ if __name__ == "__main__":
         PAGERANK = json.load(f)
     # with open("databases/hits.json", 'r') as f:
     #     HITS = json.load(f)
-    HITS = list()
     ranked_search()
