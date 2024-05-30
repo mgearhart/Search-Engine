@@ -51,5 +51,5 @@ def summarize():
 if __name__ == "__main__":
     summarize()
 
-    with open("../../databases/url_to_summary.json", "w") as out:
+    with open("../../databases/id_to_summary.json", "w") as out:
         json.dump(url_to_summary, out, indent=4)
