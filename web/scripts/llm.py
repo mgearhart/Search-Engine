@@ -36,7 +36,9 @@ def summarize(path: str):
                 
 
 if __name__ == "__main__":
+    # put in the path of the json file ex) "../../databases/url_part_1.json"
     summarize("../../databases/id_to_url.json")
 
-    with open("../../databases/id_to_summary.json", "w") as out:
+    # change the name of the file that it is saved to
+    with open("../../databases/id_to_summary_part1.json", "w") as out:
         json.dump(url_to_summary, out, indent=4)
