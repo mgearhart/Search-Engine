@@ -18,11 +18,10 @@ def summarize():
                 data = json.load(f)
                 
                 url = data.get("url", "") # Our data from the json
-                content = data.get("content", "")
 
                 llm_url = "http://localhost:11434/api/generate"
                 prompt = "Here is the content of a webpage in 6-10 words analyze the it and summarize the page.\
-                          Make sure the summary is short and speedy, here is the url: " + str(content)
+                          Make sure the summary is short and speedy, here is the url: " + str(url)
                 llm_data = {
                     "model": "phi3",
                     "prompt": prompt,
