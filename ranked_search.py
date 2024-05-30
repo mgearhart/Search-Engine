@@ -93,6 +93,7 @@ def ranked_search():
 
     while True:
         # console interface for ranked search
+        print('=' * 100)
         query = input("Please enter your query: ")
         t0 = time()
         # split query / process words
@@ -132,7 +133,7 @@ def ranked_search():
         #display results to user
         #x is a DocScoreInfo; negative sorts by descending
         for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
-            print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {ID_TO_URL[str(docid)]}")
+            print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {PAGERANK[docid]:<23} {ID_TO_URL[str(docid)]}")
             
         print(f'{len(doc_score_infos)} URLs considered')
         print(f"Time Elapsed: {time() - t0}\n")
