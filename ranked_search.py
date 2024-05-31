@@ -40,8 +40,8 @@ def filterStopWords(words: list) -> list:
 
 #TODO TODO TODO need to tune these
 #TODO TODO TODO clean up importance
-DYNAMIC_STATIC = 1
-SUM_COSINE = 1
+DYNAMIC_STATIC = .5
+SUM_COSINE = .5
 class DocScoreInfo:
     '''
     Each considered document gets its own DocScoreInfo.
