@@ -6,8 +6,6 @@ from indexer import stemWords
 from time import time
 from collections import defaultdict
 from math import log10, sqrt
-from numpy import dot
-from numpy.linalg import norm
 
 
 def tokenize(content: str) -> list:
@@ -18,15 +16,14 @@ def tokenize(content: str) -> list:
 
 
 #TODO TODO TODO need to tune these
-TFIDF_STATIC = 1
+#TODO TODO TODO clean up importance
+DYNAMIC_STATIC = 1
 SUM_COSINE = 1
-PAGERANK_HITS = 1
 class DocScoreInfo:
     '''
     Each considered document gets its own DocScoreInfo.
-    self.info:  {term -> (tfidf, importance)}. Each element is essentially a posting:
+    self.info:  {term -> tfidf}. Each element is essentially a posting:
         The ifidf for (term, doc) is self.info[term][0]
-        The importance for (term, doc) is self.info[term][1]
     self.score: After calling self.computeScore(), contains the score for this document.
     '''
     def __init__(self):
@@ -34,42 +31,32 @@ class DocScoreInfo:
         self.score = None
         
 
-    def update(self, term: str, tfidf: float, importance: str):
-        self.info[term] = (tfidf, importance)
+    def update(self, term: str, tfidf: float):
+        self.info[term] = tfidf
 
 
     def computeScore(self, docid: int, query_vector: dict[str, float]):
         '''
-        Placeholder for now; we shall see how we want to do this.
-        We can do something like:
-
-        TFIDF_STATIC * [SUM_COSINE * SUM_TFIDF_IMPORTANT_WORDS + (1 - SUM_COSINE) * COSINE_SIMILARITY]
-        +
-        (1 - TFIDF_STATIC) * [PAGERANK_HITS * PAGERANK]
-
-        for tuneable constants TFIDF_STATIC, SUM_COSINE, PAGERANK_HITS.
+        For tuneable constants DYNAMIC_STATIC, SUM_COSINE.
         '''
         global PAGERANK
 
-        important_words_weighted_sum_tfidf  = self.importantWordsWeightedSumTFIDF()
-        cosine_similarity                   = self.cosineSimilarity(query_vector)
-        pagerank                            = self.pagerank(docid)
+        sum_tfidf           = self.sumTFIDF()
+        #storing as member to print for debugging
+        self.cosine_similarity   = self.cosineSimilarity(query_vector)
+        pagerank            = self.pagerank(docid)
     
-        self.score = TFIDF_STATIC * (SUM_COSINE * important_words_weighted_sum_tfidf + (1 - SUM_COSINE) * cosine_similarity) + \
-            (1 - TFIDF_STATIC) * (PAGERANK_HITS * pagerank)
+        self.score = DYNAMIC_STATIC * (SUM_COSINE * sum_tfidf + (1 - SUM_COSINE) * self.cosine_similarity) + \
+               (1 - DYNAMIC_STATIC) * pagerank
         
 
-    def importantWordsWeightedSumTFIDF(self) -> float:
-        return sum(tfidf_importance[0] for tfidf_importance in self.info.values())
+    def sumTFIDF(self) -> float:
+        return sum(tfidf for tfidf in self.info.values())
     
 
     def cosineSimilarity(self, query_vector: dict[str, float]) -> float:
-        extracted_query_vector = query_vector.values()
-        document = [] # TODO implement
-
-        cos_similarity = dot(extracted_query_vector, document) / (norm(extracted_query_vector) * norm(document))
-        # return cos_similarity
-        return 0.0
+        norm = 1 / sqrt(sum(tfidf ** 2 for tfidf in self.info.values()))
+        return sum(norm * self.info[term] * query_vector[term] for term in self.info)
     
 
     def pagerank(self, docid: int) -> float:
@@ -120,18 +107,19 @@ def ranked_search():
                     row = next(indexreader) #gets line
 
                     for posting in row[1:]: #[0] is the term
-                        # docid, tfidf, importance = posting.split(', ') #importance ends in a ')'
-                        posting = posting[:-3] + ", TODO), "
-                        docid, tfidf, importance, _ = posting.split(', ')
-                        doc_score_infos[int(docid)].update(term, float(tfidf), importance[:-1])
+                        # posting = posting[:-3] + ", TODO), "
+                        docid, tfidf, *_ = posting.split(', ')
+                        doc_score_infos[int(docid)].update(term, float(tfidf.rstrip(")]")))
 
         for docid, doc_score_info in doc_score_infos.items():
             doc_score_info.computeScore(docid, query_vector)
 
         #display results to user
         #x is a DocScoreInfo; negative sorts by descending
-        for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
-            print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {PAGERANK[docid]:<23} {ID_TO_URL[str(docid)]}")
+        # for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
+        #TODO TODO TODO this is ranking by only cosine similarity
+        for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].cosine_similarity)[:100]): #top 100 + extraneous print for now
+            print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {doc_score_infos[docid].cosine_similarity:<20} {PAGERANK[docid]:<23} {ID_TO_URL[str(docid)]}")
             
         print(f'{len(doc_score_infos)} URLs considered')
         print(f"Time Elapsed: {time() - t0}\n")
