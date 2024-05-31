@@ -2,24 +2,31 @@ import sys
 
 sys.path.append("../")
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from search import webSearch
 from fastapi.responses import JSONResponse
-import json
 
 router = APIRouter()
 
 
-
 @router.get("/api/search")
-def search(query: str):
+def search(request: Request, query: str):
     '''
     Performs the search built in the assignment and JSONify it to be displayed on the GUI
     '''
-    with open("../databases/id_to_ai.json", "r") as f:
-        summary = json.load(f)
-
     potential_urls = webSearch(query)
 
-    result = {potential_urls[i][1] : summary[str(potential_urls[i][0])] for i in range(len(potential_urls))}
+    result = {}
+    for i in range(len(potential_urls)):
+        summary_id = int(potential_urls[i][0])
+        summary_id_str = potential_urls[i][0]
+        if summary_id <= 13848: # summary1
+            result[potential_urls[i][1]] = request.app.SUMMARY1[summary_id_str]
+        elif 13849 <= summary_id <= 27696: # summary2
+            result[potential_urls[i][1]] = request.app.SUMMARY2[summary_id_str]
+        elif 27697 <= summary_id <= 41544: # summary3
+            result[potential_urls[i][1]] = request.app.SUMMARY3[summary_id_str]
+        else: # summary4
+            result[potential_urls[i][1]] = request.app.SUMMARY4[summary_id_str]
+
     return JSONResponse(content=result)

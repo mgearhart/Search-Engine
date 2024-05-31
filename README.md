@@ -34,7 +34,7 @@
 * you can type your query into the search to get your results which will be displayed on `results.html`
 
 ### GUI SUMMARY:
-* the gui uses a json file called `id_to_summary.json` that contains a mapping of urls to its summary using a local llm (phi3)
+* the gui uses 4 json files called `cleaned_id_to_summary_part[1234].json` that contains a mapping of urls to its summary using a local llm (phi3)
 * the llm was obtained using the Ollama application more info here: https://ollama.com/
 * Github repo for documentation: https://github.com/ollama/ollama
 * to generate the summary file go to the web directory and do the following commands--MAKE SURE you system has the hardware to run the LLM:

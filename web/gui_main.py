@@ -1,14 +1,14 @@
 # pip install uvicorn
 # to run: python -m uvicorn gui_main:app --reload
 
-from fastapi import FastAPI # pip install fastapi
+from searchEngineAPI import SearchEngineAPI # pip install fastapi
 from root import router as home
 from searchAPI import router as search
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 
-app = FastAPI()
+app = SearchEngineAPI()
+
 
 origins = [
     "http://localhost:8080",
