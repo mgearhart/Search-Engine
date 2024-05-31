@@ -39,7 +39,9 @@
 * Github repo for documentation: https://github.com/ollama/ollama
 * to generate the summary file go to the web directory and do the following commands--MAKE SURE you system has the hardware to run the LLM:
     * after installing Ollama, go to a terminal and type `ollama run phi3` to download the model. Once downloaded terminate it.
-    * go to the web directory and run `llm.py` then wait for the summaries to generate (it will take a long time)
+    * prepare `id_to_url.json` by creating a new file called `urlChunks` in the `databases` directory
+        * go to web/scripts and run chunkurl.py to split the json file
+    * in the same directory run `llm.py` changing the path of the json file each time then wait for the summaries to generate (it will take a long time)
 
 
 

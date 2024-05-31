@@ -20,13 +20,13 @@ def search(request: Request, query: str):
     for i in range(len(potential_urls)):
         summary_id = int(potential_urls[i][0])
         summary_id_str = potential_urls[i][0]
-        if summary_id <= 13848: # summary1
+        if summary_id <= 13848:            # summary1
             result[potential_urls[i][1]] = request.app.SUMMARY1[summary_id_str]
         elif 13849 <= summary_id <= 27696: # summary2
             result[potential_urls[i][1]] = request.app.SUMMARY2[summary_id_str]
         elif 27697 <= summary_id <= 41544: # summary3
             result[potential_urls[i][1]] = request.app.SUMMARY3[summary_id_str]
-        else: # summary4
+        else:                              # summary4
             result[potential_urls[i][1]] = request.app.SUMMARY4[summary_id_str]
 
     return JSONResponse(content=result)

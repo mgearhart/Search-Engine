@@ -66,6 +66,7 @@ class DocScoreInfo:
 #TODO speedup ideas:
 #  heap
 #  selection algorithm
+#  champion list (lec 23) return only top 1000 results for example
 def ranked_search():
     # with open("databases/id_to_url.json", 'r') as f:
     #     ID_TO_URL = json.load(f)
