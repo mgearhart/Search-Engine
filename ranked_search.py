@@ -6,6 +6,10 @@ from indexer import stemWords
 from time import time
 from collections import defaultdict
 from math import log10, sqrt
+import nltk
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+stop_words = set(stopwords.words('english'))
 
 
 def tokenize(content: str) -> list:
@@ -13,6 +17,25 @@ def tokenize(content: str) -> list:
     Takes query as string, and tokenizes it.
     '''
     return re.findall(r'\b[A-Za-z0-9]+\b', content.lower())
+
+def filterStopWords(words: list) -> list:
+    STOP_WORD_PERCENT = .6 # this means if stop words make up this percent or more, we keep them
+    
+    stop_count = 0
+    total_count = 0
+    for word in words:
+        if word in stop_words:
+            stop_count += 1
+        total_count += 1
+    
+    if(total_count == 0): #prevent divide by 0 error
+        return words
+    
+    if stop_count / total_count < STOP_WORD_PERCENT: #If we should remove stop words because they are not important enough
+        final_list = [word for word in words if word not in stop_words]
+        return final_list
+    else:
+        return words #otherwise don't remove and return original list
 
 
 #TODO TODO TODO need to tune these
@@ -83,7 +106,9 @@ def ranked_search():
         query = input("Please enter your query: ")
         t0 = time()
         # split query / process words
-        stemmed_query_words = stemWords(tokenize(query)) #stems words in query
+        tokenized_words = tokenize(query)
+        stop_words_filter = filterStopWords(tokenized_words)
+        stemmed_query_words = stemWords(stop_words_filter) #stems words in query
 
         #compute the query as a vector once, then reuse
         # {term -> ltc}
