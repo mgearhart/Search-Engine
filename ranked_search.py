@@ -144,7 +144,7 @@ def ranked_search():
         #x is a DocScoreInfo; negative sorts by descending
         # for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
         #TODO TODO TODO this is ranking by only cosine similarity
-        for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].cosine_similarity)[:100]): #top 100 + extraneous print for now
+        for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
             print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {doc_score_infos[docid].cosine_similarity:<20} {PAGERANK[docid]:<23} {ID_TO_URL[str(docid)]}")
             
         print(f'{len(doc_score_infos)} URLs considered')
