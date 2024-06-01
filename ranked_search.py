@@ -204,7 +204,7 @@ def ranked_search():
             for term in query_vector:
                 if term in TERM_TO_SEEK: #terms that dont appear anywhere dont do anything
                     if term in stop_words:
-                        MAX_POSTINGS = 50000  # Number of postings to process per term
+                        MAX_POSTINGS = 5000  # Number of postings to process per term
 
                         indexreader = csv.reader(f, delimiter='(')
                         f.seek(TERM_TO_SEEK[term], 0)  # Move pointer to the beginning of term line
