@@ -15,19 +15,14 @@
 ### 2. Load auxillary directory
 * make a directory called databases with the parent directory being Search-Engine
 
-### 3. Run `indexer.py`
-* this will create the the partitioned index in databases
+### 3. Run `pipeline.py`
+* input '12345678' in the commandline to fully index everything. You can do it in batches, like '1' first,
+* then run again with '2', but make sure it's in order.
 
-### 4. Run `run_after_index.py`
-* this will create the following json files:
-    * `id_to_url.json`
-    * `term_to_seek.json`
-* this will also create the final index, `final_merged.csv`
+### 4. Running the Non-GUI search
+* run 'ranked_search.py', which lets you input searches, and outputs urls relevant to the query
 
-### 5. Running the Non-GUI search
-* run `search.py` to use the command-line based search
-
-### 6. Running the GUI search
+### 5. Running the GUI search
 * open a terminal and from the root directory `(Search-Engine)` cd into `web`
 * run the backend using `python -m uvicorn gui_main:app --reload` which will launch the backend to your localhost. Wait for the backend to fully load
 * once the backend is loaded head over to the web folder and use the VS Code Live Server (or any service to view an html page in a browser) to launch `index.html`. This is the home page
