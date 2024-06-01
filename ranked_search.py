@@ -26,7 +26,7 @@ def filterStopWords(words: list) -> list:
     '''
     Filters the stop words in our query if it passes a certain threshold.
     '''
-    STOP_WORD_PERCENT = .75 # this means if stop words make up this percent or more, we keep them
+    STOP_WORD_PERCENT = 0.75 # this means if stop words make up this percent or more, we keep them
     
     stop_count = 0
     total_count = 0
@@ -47,8 +47,8 @@ def filterStopWords(words: list) -> list:
 
 #TODO TODO TODO need to tune these
 #TODO TODO TODO clean up importance
-DYNAMIC_STATIC = .5
-SUM_COSINE = .5
+DYNAMIC_STATIC = 0.5
+SUM_COSINE = 0.01
 class DocScoreInfo:
     '''
     Each considered document gets its own DocScoreInfo.
