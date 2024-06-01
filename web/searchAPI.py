@@ -6,6 +6,7 @@ from fastapi import APIRouter, Request
 from ranked_search import webRankedSearch
 from fastapi.responses import JSONResponse
 
+
 router = APIRouter()
 
 

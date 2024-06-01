@@ -9,7 +9,7 @@ from math import log10, sqrt
 import nltk
 from nltk.corpus import stopwords
 
-IS_WEB = True # Global flag indicating if we are using the GUI
+IS_WEB = False # Global flag indicating if we are using the GUI
 
 nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
@@ -26,7 +26,7 @@ def filterStopWords(words: list) -> list:
     '''
     Filters the stop words in our query if it passes a certain threshold.
     '''
-    STOP_WORD_PERCENT = .6 # this means if stop words make up this percent or more, we keep them
+    STOP_WORD_PERCENT = .75 # this means if stop words make up this percent or more, we keep them
     
     stop_count = 0
     total_count = 0
@@ -59,9 +59,6 @@ class DocScoreInfo:
     def __init__(self):
         self.info = dict()
         self.score = None
-        if IS_WEB:
-            with open("../databases/pagerank.json", 'r') as f:
-                self.pagerank_file = json.load(f)
         
 
     def update(self, term: str, tfidf: float):
@@ -76,10 +73,10 @@ class DocScoreInfo:
         sum_tfidf           = self.sumTFIDF()
         # storing as member to print for debugging
         self.cosine_similarity   = self.cosineSimilarity(query_vector)
-        pagerank            = self.pagerank(docid)
+        self.pagerank            = self.getPagerank(docid) if not IS_WEB else self.setPagerank(docid)
     
         self.score = DYNAMIC_STATIC * (SUM_COSINE * sum_tfidf + (1 - SUM_COSINE) * self.cosine_similarity) + \
-               (1 - DYNAMIC_STATIC) * pagerank
+               (1 - DYNAMIC_STATIC) * (1 + self.pagerank)
         
 
     def sumTFIDF(self) -> float:
@@ -97,11 +94,21 @@ class DocScoreInfo:
         return sum(norm * self.info[term] * query_vector[term] for term in self.info)
     
 
-    def pagerank(self, docid: int) -> float:
+    def getPagerank(self, docid: int) -> float:
         '''
         Returns the calculated pagerank of the docid
         '''
-        return PAGERANK[docid] if not IS_WEB else self.pagerank_file[docid]
+        return PAGERANK[docid]
+    
+
+    def setPagerank(self, docid: int) -> None:
+        '''
+        In the case that we are using the GUI we want to directly set the pagerank value
+        '''
+        try:
+            self.pagerank = PAGERANK.get(docid, 0.0)
+        except Exception as e:
+            print(e)
 
 
 def webRankedSearch(query: str, id_to_url: json, term_to_seek: json, idf: json) -> list:
@@ -110,6 +117,9 @@ def webRankedSearch(query: str, id_to_url: json, term_to_seek: json, idf: json) 
     We must load these files independently of this script since the endpoint for the GUI
     is located in another directory.
     '''
+    global PAGERANK
+    with open("../databases/pagerank.json", 'r') as f:
+        PAGERANK = json.load(f)
     t0 = time()
     # split query / process words
     tokenized_words = tokenize(query)
@@ -133,14 +143,28 @@ def webRankedSearch(query: str, id_to_url: json, term_to_seek: json, idf: json) 
         #maps docid -> DocScoreInfo
         doc_score_infos = defaultdict(DocScoreInfo)
         for term in query_vector:
-            if term in term_to_seek: # terms that dont appear anywhere dont do anything
-                indexreader = csv.reader(f, delimiter='(')
-                f.seek(term_to_seek[term], 0) # moves pointer to the beginning of term line
-                row = next(indexreader) # gets line
+            if term in term_to_seek: #terms that dont appear anywhere dont do anything
+                if term in stop_words:
+                    MAX_POSTINGS = 5000  # Number of postings to process per term
 
-                for posting in row[1:]: #[0] is the term
-                    docid, tfidf, *_ = posting.split(', ')
-                    doc_score_infos[int(docid)].update(term, float(tfidf.rstrip(")]")))
+                    indexreader = csv.reader(f, delimiter='(')
+                    f.seek(term_to_seek[term], 0)  # Move pointer to the beginning of term line
+                    row = next(indexreader)  # Get line
+
+                    for i, posting in enumerate(row[1:]):  # [0] is the term
+                        if i >= MAX_POSTINGS:
+                            break  # Stop after processing the first MAX_POSTINGS
+                        docid, tfidf, *_ = posting.split(', ')
+                        doc_score_infos[int(docid)].update(term, float(tfidf.rstrip(")]")))
+                else:
+                    indexreader = csv.reader(f, delimiter='(')
+                    f.seek(term_to_seek[term], 0) #moves pointer to the beginning of term line
+                    row = next(indexreader) #gets line
+
+                    for posting in row[1:]: #[0] is the term
+
+                        docid, tfidf, *_ = posting.split(', ')
+                        doc_score_infos[int(docid)].update(term, float(tfidf.rstrip(")]")))
 
     for docid, doc_score_info in doc_score_infos.items():
         doc_score_info.computeScore(docid, query_vector)
@@ -166,15 +190,6 @@ def ranked_search():
     '''
     Main final search engine algorithm
     '''
-    # with open("databases/id_to_url.json", 'r') as f:
-    #     ID_TO_URL = json.load(f)
-    # with open("databases/term_to_seek.json", 'r') as f:
-    #     TERM_TO_SEEK = json.load(f)
-    # with open("databases/idf.json", 'r') as f:
-    #     IDF = json.load(f)
-    # with open("databases/pagerank.json", 'r') as f:
-    #     PAGERANK = json.load(f)
-
     while True:
         # console interface for ranked search
         print('=' * 100)
