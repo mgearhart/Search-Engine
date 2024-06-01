@@ -149,7 +149,7 @@ def webRankedSearch(query: str, id_to_url: json, term_to_seek: json, idf: json) 
     # x is a DocScoreInfo; negative sorts by descending
 
     url = []
-    for docid in sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]:
+    for docid in sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score):
         url.append((str(docid), id_to_url[str(docid)]))
             
     print(f'{len(doc_score_infos)} URLs considered')
