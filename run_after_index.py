@@ -173,5 +173,7 @@ def tfidf():
                             tfidf *= HEADER_MULTIPLIER
                         elif docid in important_words[term].get('bold', []):   
                             tfidf *= BOLD_MULTIPLIER
-                    new_postings.append((docid, tfidf)) #compute tf -> tfidf    
+                    new_postings.append((docid, tfidf)) #compute tf -> tfidf  
+                #SORTY SORT SORT
+                new_postings = sorted(new_postings, key=lambda x: x[1], reverse=True) 
                 indexwriter.writerow([term, new_postings])
