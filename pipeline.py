@@ -12,23 +12,24 @@ MSG = \
        - databases/id_to_url.json
        - databases/crc.json
        - databases/important_words.json
-    2) indexer.idf()
+       
+       indexer.idf()
        - databases/idf.json
        - databases/df.json
-    3) run_after_index.merge_csv_files()
+    2) run_after_index.merge_csv_files()
        - databases/final_merged.csv
-    4) run_after_index.tfidf()
+    3) run_after_index.tfidf()
        - databases/final.csv
-    5) run_after_index.mapTermToCSVSeek()
+    4) run_after_index.mapTermToCSVSeek()
        - databases/term_to_seek.json
-    6) run_after_index.verify_mapTermToCSVSeek()
-    7) pagerank.makeGraph()
+    5) run_after_index.verify_mapTermToCSVSeek()
+    6) pagerank.makeGraph()
        - databases/graph.json
-    8) pagerank.computePagerank()
+    7) pagerank.computePagerank()
        - databases/pagerank.json
-    9) pagerank.verify_computePagerank()
+    8) pagerank.verify_computePagerank()
 
-Which functions to run? Some files will be appended, NOT overwritten (eg "123456789"): '''
+Which functions to run? Some files will be appended, NOT overwritten (eg "12345678"): '''
 
 
 def RUN(fname, f, *args, **kwargs ):
@@ -45,19 +46,18 @@ if __name__ == "__main__":
 
     if '1' in which:
         RUN("indexer.main()", main)
-    if '2' in which:
         RUN("indexer.idf()", idf)
-    if '3' in which:
+    if '2' in which:
         RUN("run_after_index.merge_csv_files()", merge_csv_files, "databases/index1.csv databases/index2.csv databases/index3.csv".split())
-    if '4' in which:
+    if '3' in which:
         RUN("run_after_index.tfidf()", tfidf)
-    if '5' in which:
+    if '4' in which:
         RUN("run_after_index.mapTermToCSVSeek()", mapTermToCSVSeek, "databases/final.csv")
-    if '6' in which:
+    if '5' in which:
         RUN("run_after_index.verify_mapTermToCSVSeek()", verify_mapTermToCSVSeek, "databases/final.csv", "databases/term_to_seek.json")
-    if '7' in which:
+    if '6' in which:
         RUN("pagerank.makeGraph()", makeGraph)
-    if '8' in which:
+    if '7' in which:
         RUN("pagerank.computePagerank()", computePagerank)
-    if '9' in which:
+    if '8' in which:
         RUN("pagerank.verify_computePagerank()", verify_computePagerank)
