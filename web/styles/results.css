@@ -89,6 +89,16 @@ h1 {
   padding-left: 20px; /* Indent summaries */
 }
 
+/* Style for the horizontal line */
+#results li hr {
+  border: 0;
+  height: 1px;
+  background: #AD6A6C; /* Color consistent with links */
+  margin: 10px 0; /* Margin for spacing */
+  max-width: 600px; /* Match summary width */
+  padding-left: 20px; /* Match summary indentation */
+}
+
 #result-stats {
   font-size: 1.5rem;
   color: #484A47;

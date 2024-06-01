@@ -24,7 +24,7 @@ console.log(query);
 
     // Pagination variables
     let currentPage = 1;
-    let urlsPerPage = 25;
+    let urlsPerPage = 15;
 
     function displayResults() {
         // Clear previous results
@@ -46,6 +46,10 @@ console.log(query);
             link.href = url;
             link.appendChild(document.createTextNode(url));
             url_to_append.appendChild(link);
+
+            // Add the dividing line
+            let divider = document.createElement("hr");
+            url_to_append.appendChild(divider);
 
             let summaryElement = document.createElement("p");
             summaryElement.textContent = summary;
