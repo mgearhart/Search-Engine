@@ -18,6 +18,7 @@ def tokenize(content: str) -> list:
     '''
     return re.findall(r'\b[A-Za-z0-9]+\b', content.lower())
 
+
 def filterStopWords(words: list) -> list:
     STOP_WORD_PERCENT = .6 # this means if stop words make up this percent or more, we keep them
     
@@ -62,7 +63,6 @@ class DocScoreInfo:
         '''
         For tuneable constants DYNAMIC_STATIC, SUM_COSINE.
         '''
-        global PAGERANK
 
         sum_tfidf           = self.sumTFIDF()
         #storing as member to print for debugging
@@ -74,16 +74,39 @@ class DocScoreInfo:
         
 
     def sumTFIDF(self) -> float:
+        '''
+        Sums the tf-idf
+        '''
         return sum(tfidf for tfidf in self.info.values())
     
 
     def cosineSimilarity(self, query_vector: dict[str, float]) -> float:
+        '''
+        Calculates the cosine similarity of the query and documents
+        '''
         norm = 1 / sqrt(sum(tfidf ** 2 for tfidf in self.info.values()))
         return sum(norm * self.info[term] * query_vector[term] for term in self.info)
     
 
     def pagerank(self, docid: int) -> float:
+        '''
+        Returns the calculated pagerank of the docid
+        '''
         return PAGERANK[docid]
+
+
+def webRankedSearch():
+    '''
+    Uses the ranked_search logic and packages the urls to be used in the GUI
+    '''
+    with open("databases/id_to_url.json", 'r') as f:
+        id_to_url = json.load(f)
+    with open("databases/term_to_seek.json", 'r') as f:
+        term_to_seek = json.load(f)
+    with open("databases/idf.json", 'r') as f:
+        idf = json.load(f)
+    with open("databases/pagerank.json", 'r') as f:
+        pagerank = json.load(f)
 
 
 #TODO speedup ideas:
@@ -91,6 +114,9 @@ class DocScoreInfo:
 #  selection algorithm
 #  champion list (lec 23) return only top 1000 results for example
 def ranked_search():
+    '''
+    Main final search engine algorithm
+    '''
     # with open("databases/id_to_url.json", 'r') as f:
     #     ID_TO_URL = json.load(f)
     # with open("databases/term_to_seek.json", 'r') as f:
@@ -144,7 +170,7 @@ def ranked_search():
         #x is a DocScoreInfo; negative sorts by descending
         # for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
         #TODO TODO TODO this is ranking by only cosine similarity
-        for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
+        for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)): #top 100 + extraneous print for now
             print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {doc_score_infos[docid].cosine_similarity:<20} {PAGERANK[docid]:<23} {ID_TO_URL[str(docid)]}")
             
         print(f'{len(doc_score_infos)} URLs considered')

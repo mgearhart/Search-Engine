@@ -20,7 +20,7 @@
 * then run again with '2', but make sure it's in order.
 
 ### 4. Running the Non-GUI search
-* run 'ranked_search.py', which lets you input searches, and outputs urls relevant to the query
+* run `ranked_search.py`, which lets you input searches, and outputs urls relevant to the query
 
 ### 5. Running the GUI search
 * open a terminal and from the root directory `(Search-Engine)` cd into `web`

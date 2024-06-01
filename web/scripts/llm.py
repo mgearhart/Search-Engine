@@ -5,6 +5,10 @@ url_to_summary = {}
 id_to_url = {}
 
 def summarize(path: str):
+    '''
+    Uses the phi3 LLM to summarize the contents of the url. Installation of the model
+    can be found in the readme
+    '''
     with open(path, "r") as map:
         id_to_url = json.load(map)   
 
