@@ -104,19 +104,12 @@ class DocScoreInfo:
         return PAGERANK[docid] if not IS_WEB else self.pagerank_file[docid]
 
 
-def webRankedSearch(query: str):
+def webRankedSearch(query: str, id_to_url: json, term_to_seek: json, idf: json) -> list:
     '''
     Uses the ranked_search logic and packages the urls to be used in the GUI
     We must load these files independently of this script since the endpoint for the GUI
     is located in another directory.
     '''
-    with open("../databases/id_to_url.json", 'r') as f:
-        id_to_url = json.load(f)
-    with open("../databases/term_to_seek.json", 'r') as f:
-        term_to_seek = json.load(f)
-    with open("../databases/idf.json", 'r') as f:
-        idf = json.load(f)
-
     t0 = time()
     # split query / process words
     tokenized_words = tokenize(query)
@@ -156,7 +149,7 @@ def webRankedSearch(query: str):
     # x is a DocScoreInfo; negative sorts by descending
 
     url = []
-    for docid in sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score):
+    for docid in sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]:
         url.append((str(docid), id_to_url[str(docid)]))
             
     print(f'{len(doc_score_infos)} URLs considered')

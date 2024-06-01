@@ -8,17 +8,16 @@ from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
-cached_urls = []
 
 @router.get("/api/search")
-def search(request: Request, query: str, page: int):
+def search(request: Request, query: str):
     '''
     Performs the search built in the assignment and JSONify it to be displayed on the GUI
     '''
-    if page == 1:
-        potential_urls = webRankedSearch(query)
-        cached_urls = potential_urls
-        potential_urls = potential_urls[:25]
+    potential_urls = webRankedSearch(query, 
+                                     request.app.id_to_url, 
+                                     request.app.term_to_seek, 
+                                     request.app.idf)
 
     result = {}
     for i in range(len(potential_urls)):

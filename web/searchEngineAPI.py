@@ -21,4 +21,11 @@ class SearchEngineAPI(FastAPI):
         with open("../databases/cleaned_id_to_summary_part4.json", "r") as f:
             self.SUMMARY4 = json.load(f)
 
+        with open("../databases/id_to_url.json", 'r') as f:
+            self.id_to_url = json.load(f)
+        with open("../databases/term_to_seek.json", 'r') as f:
+            self.term_to_seek = json.load(f)
+        with open("../databases/idf.json", 'r') as f:
+            self.idf = json.load(f)
+
         super().__init__()

@@ -15,6 +15,7 @@ async function search(query) {
 }
 
 let query = getParameterByName("query");
+let page = getParameterByName("page")
 console.log(query);
 
 (async () => {
