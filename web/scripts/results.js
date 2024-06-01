@@ -11,7 +11,6 @@ async function search(query) {
     let search_url = "http://localhost:8000/api/search?query=" + query;
     const response = await fetch(search_url);
     const urls = await response.json();
-    console.log(urls);
     return urls;
 }
 

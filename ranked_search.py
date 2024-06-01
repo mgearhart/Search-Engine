@@ -8,6 +8,9 @@ from collections import defaultdict
 from math import log10, sqrt
 import nltk
 from nltk.corpus import stopwords
+
+IS_WEB = True # Global flag indicating if we are using the GUI
+
 nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 
@@ -20,6 +23,9 @@ def tokenize(content: str) -> list:
 
 
 def filterStopWords(words: list) -> list:
+    '''
+    Filters the stop words in our query if it passes a certain threshold.
+    '''
     STOP_WORD_PERCENT = .6 # this means if stop words make up this percent or more, we keep them
     
     stop_count = 0
@@ -53,6 +59,9 @@ class DocScoreInfo:
     def __init__(self):
         self.info = dict()
         self.score = None
+        if IS_WEB:
+            with open("../databases/pagerank.json", 'r') as f:
+                self.pagerank_file = json.load(f)
         
 
     def update(self, term: str, tfidf: float):
@@ -65,7 +74,7 @@ class DocScoreInfo:
         '''
 
         sum_tfidf           = self.sumTFIDF()
-        #storing as member to print for debugging
+        # storing as member to print for debugging
         self.cosine_similarity   = self.cosineSimilarity(query_vector)
         pagerank            = self.pagerank(docid)
     
@@ -92,21 +101,68 @@ class DocScoreInfo:
         '''
         Returns the calculated pagerank of the docid
         '''
-        return PAGERANK[docid]
+        return PAGERANK[docid] if not IS_WEB else self.pagerank_file[docid]
 
 
-def webRankedSearch():
+def webRankedSearch(query: str):
     '''
     Uses the ranked_search logic and packages the urls to be used in the GUI
+    We must load these files independently of this script since the endpoint for the GUI
+    is located in another directory.
     '''
-    with open("databases/id_to_url.json", 'r') as f:
+    with open("../databases/id_to_url.json", 'r') as f:
         id_to_url = json.load(f)
-    with open("databases/term_to_seek.json", 'r') as f:
+    with open("../databases/term_to_seek.json", 'r') as f:
         term_to_seek = json.load(f)
-    with open("databases/idf.json", 'r') as f:
+    with open("../databases/idf.json", 'r') as f:
         idf = json.load(f)
-    with open("databases/pagerank.json", 'r') as f:
-        pagerank = json.load(f)
+
+    t0 = time()
+    # split query / process words
+    tokenized_words = tokenize(query)
+    stop_words_filter = filterStopWords(tokenized_words)
+    stemmed_query_words = stemWords(stop_words_filter) #stems words in query
+
+    query_vector = defaultdict(int)
+    for term in stemmed_query_words:
+        query_vector[term] += 1  
+                                                       #raw tf
+    for term in query_vector:
+        query_vector[term] = (1 + log10(query_vector[term])) * idf.get(term, 0) #tfidf; IDF default 0 is ok because no doc will have it
+        norm = sqrt(sum(tfidf ** 2 for tfidf in query_vector.values()))
+        norm = (0 if norm == 0 else 1 / norm)    
+                                           # then query has no indexed terms, and the rest is a no-op anyway. could just skip immediately
+    for term in query_vector:
+        query_vector[term] = query_vector[term] * norm                          #normalize
+
+    # lookup urls for each term
+    with open('../databases/final.csv', 'r') as f:
+        #maps docid -> DocScoreInfo
+        doc_score_infos = defaultdict(DocScoreInfo)
+        for term in query_vector:
+            if term in term_to_seek: # terms that dont appear anywhere dont do anything
+                indexreader = csv.reader(f, delimiter='(')
+                f.seek(term_to_seek[term], 0) # moves pointer to the beginning of term line
+                row = next(indexreader) # gets line
+
+                for posting in row[1:]: #[0] is the term
+                    docid, tfidf, *_ = posting.split(', ')
+                    doc_score_infos[int(docid)].update(term, float(tfidf.rstrip(")]")))
+
+    for docid, doc_score_info in doc_score_infos.items():
+        doc_score_info.computeScore(docid, query_vector)
+
+    #display results to user
+    # x is a DocScoreInfo; negative sorts by descending
+
+    url = []
+    for docid in sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score):
+        url.append((str(docid), id_to_url[str(docid)]))
+            
+    print(f'{len(doc_score_infos)} URLs considered')
+    print(f"Time Elapsed: {time() - t0}\n")
+
+    return url
 
 
 #TODO speedup ideas:
@@ -169,7 +225,6 @@ def ranked_search():
         #display results to user
         #x is a DocScoreInfo; negative sorts by descending
         # for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)[:100]): #top 100 + extraneous print for now
-        #TODO TODO TODO this is ranking by only cosine similarity
         for rank, docid in enumerate(sorted(doc_score_infos, key = lambda x: -doc_score_infos[x].score)): #top 100 + extraneous print for now
             print(f"{rank + 1:<3} {doc_score_infos[docid].score:<20} {doc_score_infos[docid].cosine_similarity:<20} {PAGERANK[docid]:<23} {ID_TO_URL[str(docid)]}")
             
@@ -178,6 +233,7 @@ def ranked_search():
 
 
 if __name__ == "__main__":
+    IS_WEB = False # if we are not using the GUI set flag to false
     with open("databases/id_to_url.json", 'r') as f:
         ID_TO_URL = json.load(f)
     with open("databases/term_to_seek.json", 'r') as f:
@@ -186,5 +242,4 @@ if __name__ == "__main__":
         IDF = json.load(f)
     with open("databases/pagerank.json", 'r') as f:
         PAGERANK = json.load(f)
-
     ranked_search()

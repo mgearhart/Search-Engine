@@ -3,18 +3,22 @@ import sys
 sys.path.append("../")
 
 from fastapi import APIRouter, Request
-from search import webSearch
+from ranked_search import webRankedSearch
 from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
+cached_urls = []
 
 @router.get("/api/search")
-def search(request: Request, query: str):
+def search(request: Request, query: str, page: int):
     '''
     Performs the search built in the assignment and JSONify it to be displayed on the GUI
     '''
-    potential_urls = webSearch(query)
+    if page == 1:
+        potential_urls = webRankedSearch(query)
+        cached_urls = potential_urls
+        potential_urls = potential_urls[:25]
 
     result = {}
     for i in range(len(potential_urls)):
