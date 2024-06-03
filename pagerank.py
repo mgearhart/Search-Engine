@@ -30,15 +30,15 @@ def normalizeURL(url: str) -> str:
     '''
     scheme = url.find("://")
     if scheme != -1:
-        scheme += 3
+        scheme += 3 #go to non-scheme
     www = url.find("www.")
     if www != -1:
-        www += 4
-    start = max(0, scheme, www)
+        www += 4 #go to non-www
+    start = max(0, scheme, www) #whichever chops off the most
     frag = url.rfind("#")
     if frag == -1:
-        frag = len(url)
-    return url[start : frag].rstrip('/')
+        frag = len(url) #-1 will truncate the last character
+    return url[start : frag].rstrip('/') #rstrip at the end since some urls end with "/#fragment"
 
 
 def makeGraph():
@@ -47,6 +47,7 @@ def makeGraph():
         ID_TO_URL = json.load(f)
     with open ("databases/crc.json", 'r') as f:
         CRC = json.load(f)
+    #in dict CRC, the first element of the list is the first-encountered doc for that hash
     NON_DUPLICATE_URLS_TO_ID = {normalizeURL(ID_TO_URL[str(ls[0])]): ls[0] for ls in CRC.values()}
     DUPLICATE_IDS = set(ls[i] for ls in CRC.values() for i in range(1, len(ls)))
     del ID_TO_URL
@@ -56,7 +57,7 @@ def makeGraph():
     for root, dirs, files in os.walk(os.path.abspath("DEV")):
         dirs.sort()
         for file in sorted(files):
-            if docid not in DUPLICATE_IDS:
+            if docid not in DUPLICATE_IDS: #ignore crc duplicates
                 file_path = os.path.join(root, file)
                 print(f"{docid:<6} {file_path}")
                 with open(file_path, "r") as f:
@@ -68,13 +69,15 @@ def makeGraph():
                     soup = BeautifulSoup(content, "html.parser")
                     for a_elem in soup.find_all('a', href=True):
                         link = a_elem["href"]
+
+                        #normalization
                         if not isAbsolute(link):
                             link = makeAbsolute(url, link)
-
                         if (link := normalizeURL(link)) in NON_DUPLICATE_URLS_TO_ID:
                             GRAPH[docid].add(NON_DUPLICATE_URLS_TO_ID[link])
             docid += 1
     
+    #None if duplicate, else a list of outlinks. still has all N_55393
     GRAPH = [None if i in DUPLICATE_IDS else list(links) for i, links in enumerate(GRAPH)] #because json does not use sets
     with open("databases/graph.json", 'w') as f:
         json.dump(GRAPH, f, indent=4)
@@ -82,16 +85,19 @@ def makeGraph():
 def computePagerank():
     with open("databases/graph.json", 'r') as f:
         GRAPH = json.load(f)
-    N = sum(x is not None for x in GRAPH)
+    N = sum(x is not None for x in GRAPH) #num non-duplicates
+    #None if duplicate, else initialize to equal probability
     old = [None if GRAPH[i] is None else 1 / N for i in range(N_55393)]
     for its in range(ITERATIONS):
         new = [None if GRAPH[i] is None else RAND / N for i in range(N_55393)]
+        #dangling docs have no outlinks. in this case, go to a uniformly random doc
         DANGLES = sum(x for i, x in enumerate(old) if GRAPH[i] is not None and not GRAPH[i])
         for v in range(N_55393):
             print(f"Iteration{its} {v:<6}")
             if GRAPH[v]:
                 for w in GRAPH[v]:
-                    new[w] += ONE_MINUS_RAND * old[v] / len(GRAPH[v])
+                    new[w] += ONE_MINUS_RAND * old[v] / len(GRAPH[v]) #main update
+        #ensuring  dangling links' pageranks aren't leaked out 
         for w in range(N_55393):
             if GRAPH[w] is not None:
                 new[w] += ONE_MINUS_RAND * DANGLES / N

@@ -18,7 +18,7 @@ IDF_VALUES = {}
 IMPORTANT_WORDS = {}
 
 N_NON_DUPLICATE = 0 #will be N in idf computation: 55393 - duplicates
-CRC = defaultdict(list)
+CRC = defaultdict(list) #each doc will be in exactly one list: its equivalence class as defined by crc hash
 
 
 class Posting():
@@ -161,7 +161,7 @@ def crcDuplicate(docid: int, text: str) -> bool:
     Partitions documents by crc hash into the dict CRC.
     Returns whether CRC duplicate is found. Prints if so.
     '''
-    match = (crc := crc32(text.encode(encoding="utf-8"))) in CRC
+    match = (crc := crc32(text.encode(encoding="utf-8"))) in CRC #whether hash already seen
     CRC[crc].append(docid)
     if match:
         print(f"{docid:<6} CRC found exact duplicate. Will not index.")

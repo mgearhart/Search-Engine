@@ -33,6 +33,9 @@ Which functions to run? Some files will be appended, NOT overwritten (eg "123456
 
 
 def RUN(fname, f, *args, **kwargs ):
+    '''
+    Prints that function is beginning -> runs it -> prints that it ended, along with time elapsed.
+    '''
     global TIME
     print(f"{f'BEGIN {fname}':=^100}")
     f(*args, **kwargs)

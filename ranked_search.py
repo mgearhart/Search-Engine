@@ -45,8 +45,6 @@ def filterStopWords(words: list) -> list:
         return words #otherwise don't remove and return original list
 
 
-#TODO TODO TODO need to tune these
-#TODO TODO TODO clean up importance
 DYNAMIC_STATIC = 0.5
 SUM_COSINE = 0.01
 class DocScoreInfo:
@@ -70,10 +68,10 @@ class DocScoreInfo:
         For tuneable constants DYNAMIC_STATIC, SUM_COSINE.
         '''
 
-        sum_tfidf           = self.sumTFIDF()
+        sum_tfidf               = self.sumTFIDF()
         # storing as member to print for debugging
-        self.cosine_similarity   = self.cosineSimilarity(query_vector)
-        self.pagerank            = self.getPagerank(docid) if not IS_WEB else self.setPagerank(docid)
+        self.cosine_similarity  = self.cosineSimilarity(query_vector)
+        self.pagerank           = self.getPagerank(docid) if not IS_WEB else self.setPagerank(docid)
     
         self.score = DYNAMIC_STATIC * (SUM_COSINE * sum_tfidf + (1 - SUM_COSINE) * self.cosine_similarity) + \
                (1 - DYNAMIC_STATIC) * (1 + self.pagerank)
@@ -91,6 +89,7 @@ class DocScoreInfo:
         Calculates the cosine similarity of the query and documents
         '''
         norm = 1 / sqrt(sum(tfidf ** 2 for tfidf in self.info.values()))
+        # only sum on terms in this doc
         return sum(norm * self.info[term] * query_vector[term] for term in self.info)
     
 
