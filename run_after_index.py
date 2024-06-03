@@ -18,8 +18,9 @@ def mapTermToCSVSeek(csv: str):
         seek = f.tell()
         while (line := f.readline()):
             if line.isspace():
-                seek = f.tell()
+                seek = f.tell() #necessary because of continue 
                 continue
+            #build term, stopping at '|'
             for c in line:
                 if c == '|':
                     break
