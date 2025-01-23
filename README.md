@@ -10,7 +10,8 @@
     * `pip install fastapi`
     * `pip install uvicorn`
 * Frontend for gui:
-    * VS Code live server
+    * cd into the `web` directory and run the following command: `python -m uvicorn gui_main:app --reload`
+    * go to `./web/index.html` and run VS Code live server
 
 ### 2. Load auxillary directory
 * make a directory called databases with the parent directory being Search-Engine
